@@ -48,45 +48,21 @@ class _HomeScreenState extends State<HomeScreen> {
         showBack: false,
         titleWidget: Row(
           children: [
-            Image.asset(
-              AppConstants.iconAsset,
-              width: 32,
-              height: 32,
-              errorBuilder: (_, __, ___) => const Icon(Icons.store, color: AppColors.secondaryGold),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                AppConstants.iconAsset,
+                width: 34,
+                height: 34,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const Icon(Icons.store, color: AppColors.secondaryGold, size: 28),
+              ),
             ),
             const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  AppConstants.appName,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () => LocationSelectionModal.show(context),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.location_on, color: AppColors.secondaryGold, size: 11),
-                      const SizedBox(width: 3),
-                      Text(
-                        'Deliver to: ${catalog.selectedCity}',
-                        style: const TextStyle(
-                          color: AppColors.secondaryGold,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const Icon(Icons.arrow_drop_down, color: AppColors.secondaryGold, size: 14),
-                    ],
-                  ),
-                ),
-              ],
+            const BrandTitle(
+              fontSize: 16.5,
+              showSubtitle: true,
+              subtitle: 'Your Trusted Online Market',
             ),
           ],
         ),
@@ -140,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                       const Text(
-                        'Change Location ▾',
+                        'Change your location ▾',
                         style: TextStyle(
                           fontSize: 11,
                           color: AppColors.primaryPurple,
@@ -570,31 +546,15 @@ class _HomeScreenState extends State<HomeScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.storefront, size: 18, color: AppColors.primaryPurple),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Stores Closer to You in ${catalog.selectedCity}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    GestureDetector(
-                      onTap: () => LocationSelectionModal.show(context),
-                      child: const Text(
-                        'Change Area',
-                        style: TextStyle(
-                          color: AppColors.primaryPurple,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                        ),
+                    const Icon(Icons.storefront, size: 18, color: AppColors.primaryPurple),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Stores Closer to You in ${catalog.selectedCity}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ],

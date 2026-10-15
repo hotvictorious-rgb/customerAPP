@@ -5,6 +5,63 @@ import '../core/constants/app_constants.dart';
 import '../providers/cart_provider.dart';
 import '../screens/cart/cart_screen.dart';
 
+/// Reusable Sovereign Brand Title for Victorious MARKET
+class BrandTitle extends StatelessWidget {
+  final double fontSize;
+  final bool showSubtitle;
+  final String? subtitle;
+  final CrossAxisAlignment crossAxisAlignment;
+
+  const BrandTitle({
+    super.key,
+    this.fontSize = 17,
+    this.showSubtitle = true,
+    this.subtitle,
+    this.crossAxisAlignment = CrossAxisAlignment.start,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: crossAxisAlignment,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        RichText(
+          text: TextSpan(
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.2,
+            ),
+            children: const [
+              TextSpan(
+                text: 'Victorious ',
+                style: TextStyle(color: Color(0xFFFFD700)),
+              ),
+              TextSpan(
+                text: 'MARKET',
+                style: TextStyle(color: Colors.white),
+              ),
+            ],
+          ),
+        ),
+        if (showSubtitle) ...[
+          const SizedBox(height: 1),
+          Text(
+            subtitle ?? 'Your Trusted Online Market',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.85),
+              fontSize: (fontSize * 0.62).clamp(10.0, 12.0),
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.1,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class BrandAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
   final Widget? titleWidget;
@@ -56,17 +113,19 @@ class BrandAppBar extends StatelessWidget implements PreferredSizeWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: titleWidget ??
-                    Text(
-                      title ?? AppConstants.appName,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.3,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    (title != null
+                        ? Text(
+                            title!,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.3,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          )
+                        : const BrandTitle()),
               ),
               if (actions != null) ...actions!,
               if (showCart)

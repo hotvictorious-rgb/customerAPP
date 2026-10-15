@@ -289,9 +289,11 @@ body {
 }
 
 .app-bar-subtitle {
-  font-size: 10px;
-  color: var(--secondary-gold);
-  font-weight: 700;
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  margin-top: 1px;
 }
 
 .app-bar-actions {

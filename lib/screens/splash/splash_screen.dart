@@ -117,13 +117,23 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               opacity: _fadeAnimation,
               child: Column(
                 children: [
-                  const Text(
-                    AppConstants.appName,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.5,
+                  RichText(
+                    text: const TextSpan(
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
+                      ),
+                      children: [
+                        TextSpan(
+                          text: 'Victorious ',
+                          style: TextStyle(color: AppColors.secondaryGold), // #FFD700
+                        ),
+                        TextSpan(
+                          text: 'MARKET',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 8),

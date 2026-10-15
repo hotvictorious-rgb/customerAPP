@@ -83,15 +83,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               const SizedBox(height: 14),
-              const Text(
-                'Join Victorious MARKET',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
+              RichText(
+                text: const TextSpan(
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.2,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: 'Join ',
+                      style: TextStyle(color: AppColors.textPrimary),
+                    ),
+                    TextSpan(
+                      text: 'Victorious ',
+                      style: TextStyle(color: Color(0xFFFFD700)),
+                    ),
+                    TextSpan(
+                      text: 'MARKET',
+                      style: TextStyle(color: AppColors.primaryPurple),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
+              const Text(
+                'Your Trusted Online Market',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 8),
               const Text(
                 'Get 5% sovereign cashback reward on every verified purchase in Akwa Ibom State and nationwide',
                 style: TextStyle(

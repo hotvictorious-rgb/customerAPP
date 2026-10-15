@@ -1,6 +1,6 @@
 class AppConstants {
   static const String appName = 'Victorious MARKET';
-  static const String appSlogan = 'Your Trusted Online Market For Quality Products';
+  static const String appSlogan = 'Your Trusted Online Market';
   static const String appBadge = 'ONLINE MARKETPLACE';
   
   // Official Support Lines
