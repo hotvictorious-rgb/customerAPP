@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Victorious MARKET — Customer Mobile App Simulator</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="icon" type="image/jpeg" href="assets/vm_icon.jpg">
+</head>
+<body>
+
+  <!-- Studio Header -->
+  <header class="studio-header">
+    <div class="brand-tag">
+      <i class="fa-solid fa-crown"></i> SOVEREIGN RETAIL & LOGISTICS OS
+    </div>
+    <h1>Victorious <span>MARKET</span> Mobile App</h1>
+    <p>Live Interactive Flutter Customer Client & Architecture Simulator</p>
+  </header>
+
+  <!-- Studio Controls & Backend Status -->
+  <div class="studio-controls">
+    <div class="status-indicator">
+      <div class="status-dot"></div>
+      <span id="backend-status-text">Connecting to Backend (127.0.0.1:8080)...</span>
+    </div>
+    <div class="quick-nav-pills">
+      <button class="nav-pill-btn active" onclick="switchTab('home')">Home</button>
+      <button class="nav-pill-btn" onclick="switchTab('explore')">Explore</button>
+      <button class="nav-pill-btn" onclick="switchTab('cart')">Bag (<span class="cart-pill-count">0</span>)</button>
+      <button class="nav-pill-btn" onclick="switchTab('orders')">Orders & PIN</button>
+      <button class="nav-pill-btn" onclick="switchTab('wallet')">5% Cashback</button>
+      <button class="nav-pill-btn" onclick="openReservationDemo()">Inspection Pass</button>
+    </div>
+  </div>
+
+  <!-- Smartphone Frame -->
+  <div class="phone-wrapper">
+    <div class="phone-screen">
+
+      <!-- Dynamic Island & Status Bar -->
+      <div class="phone-notch-area">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island">
+          <div class="island-camera"></div>
+          <div class="island-sensor"></div>
+        </div>
+        <div class="status-icons">
+          <i class="fa-solid fa-signal"></i>
+          <i class="fa-solid fa-wifi"></i>
+          <i class="fa-solid fa-battery-full"></i>
+        </div>
+      </div>
+
+      <!-- Scrollable Screen Viewport -->
+      <main class="screen-viewport" id="viewport">
+
+        <!-- 1. SPLASH SCREEN -->
+        <section class="screen-view active" id="view-splash">
+          <div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--purple-gradient); padding: 40px; text-align: center; color: white;">
+            <div style="width: 100px; height: 100px; border-radius: 50%; padding: 4px; background: white; box-shadow: 0 0 30px rgba(255, 215, 0, 0.5); margin-bottom: 24px;">
+              <img src="assets/vm_icon.jpg" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+            </div>
+            <h2 style="font-size: 24px; font-weight: 900; letter-spacing: 0.5px;">Victorious MARKET</h2>
+            <div style="background: var(--secondary-gold); color: #1a1a1a; padding: 4px 14px; border-radius: 20px; font-size: 10px; font-weight: 900; margin: 10px 0 30px 0; letter-spacing: 1px;">
+              ONLINE MARKETPLACE
+            </div>
+            <p style="font-size: 12px; color: rgba(255,255,255,0.7); max-width: 260px;">Your Trusted Online Market For Quality Products</p>
+            <div style="margin-top: 50px;">
+              <button class="btn-gold" style="padding: 12px 30px; border-radius: 30px; font-size: 13px;" onclick="enterMarketplace()">
+                Enter Storefront <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. HOME SCREEN -->
+        <section class="screen-view" id="view-home">
+          <!-- Top App Bar with Dynamic Location Pill (Matching newVmarket) -->
+          <div class="app-bar">
+            <div class="app-bar-brand">
+              <img src="assets/vm_icon.jpg" alt="Logo">
+              <div>
+                <div class="app-bar-title">Victorious MARKET</div>
+                <div class="delivery-location-pill" onclick="openLocationModal()" style="display: inline-flex; align-items: center; gap: 4px; cursor: pointer;">
+                  <i class="fa-solid fa-location-dot" style="color: var(--secondary-gold); font-size: 10px;"></i>
+                  <span style="font-size: 10.5px; color: rgba(255,255,255,0.9); font-weight: 600;">Deliver to: <strong id="header-location-city" style="color: white; font-weight: 800;">Uyo</strong></span>
+                  <i class="fa-solid fa-chevron-down" style="font-size: 8px; color: var(--secondary-gold); opacity: 0.9;"></i>
+                </div>
+              </div>
+            </div>
+            <div class="app-bar-actions">
+              <button class="icon-btn" onclick="openLocationModal()" title="Change Delivery LGA" style="background: rgba(255, 215, 0, 0.15); border: 1px solid rgba(255, 215, 0, 0.4);">
+                <i class="fa-solid fa-map-location-dot" style="color: var(--secondary-gold); font-size: 14px;"></i>
+              </button>
+              <button class="icon-btn" onclick="switchTab('cart')">
+                <i class="fa-solid fa-bag-shopping"></i>
+                <div class="badge-count cart-badge-num">0</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Dynamic Proximity Coverage Strip (Matching newVmarket) -->
+          <div class="proximity-coverage-strip" onclick="openLocationModal()">
+            <div class="coverage-left">
+              <span class="coverage-dot"></span>
+              <span id="proximity-coverage-badge">⚡ In-Shop Pickup & Same-Day Active</span>
+            </div>
+            <span class="coverage-change-text">Change Location ▾</span>
+          </div>
+
+          <!-- Search & Call To Order Tray -->
+          <div class="home-header-tray">
+            <div class="search-pill" onclick="switchTab('explore')">
+              <i class="fa-solid fa-magnifying-glass" style="color: var(--primary-purple);"></i>
+              <input type="text" placeholder="Search products, phones, groceries..." readonly>
+              <i class="fa-solid fa-sliders" style="color: var(--primary-purple); font-size: 12px;"></i>
+            </div>
+            <div style="display: flex; justify-content: center;">
+              <div class="call-to-order-pill" onclick="triggerCall()">
+                <div class="phone-icon-wrap"><i class="fa-solid fa-phone"></i></div>
+                <span>Call to Order: </span>
+                <span class="phone-num">+2349118949035</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5% Sovereign Cashback Banner -->
+          <div class="cashback-banner" onclick="switchTab('wallet')">
+            <div class="cashback-banner-icon">
+              <i class="fa-solid fa-wallet"></i>
+            </div>
+            <div class="cashback-banner-text">
+              <h4>5% INSTANT SOVEREIGN CASHBACK</h4>
+              <p>Earn 5% on every verified purchase in Akwa Ibom State.</p>
+            </div>
+            <i class="fa-solid fa-chevron-right" style="color: var(--text-primary); font-size: 12px; margin-left: auto;"></i>
+          </div>
+
+          <!-- Directional LGA Corridor Selector -->
+          <div class="section-header">
+            <h3>Directional LGA Corridors</h3>
+            <span class="see-all" onclick="filterLga(null)">All Akwa Ibom</span>
+          </div>
+          <div class="lga-chips-scroll" id="home-lga-chips-list">
+            <!-- Dynamically populated from /api/v1/geography/lgas/3 -->
+          </div>
+
+          <!-- Popular Categories -->
+          <div class="section-header">
+            <h3>Verified Categories</h3>
+            <span class="see-all" onclick="switchTab('explore')">Explore All</span>
+          </div>
+          <div class="categories-scroll" id="home-categories-list">
+            <!-- Dynamically populated from API -->
+          </div>
+
+          <!-- Flagship Verified Products -->
+          <div class="section-header">
+            <h3><i class="fa-solid fa-crown" style="color: var(--secondary-gold);"></i> Flagship Products</h3>
+            <span class="see-all" onclick="switchTab('explore')">View All</span>
+          </div>
+          <div class="product-grid" id="home-flagship-grid">
+            <!-- Dynamically populated from API -->
+          </div>
+
+          <!-- Stores Closer to You Quad Section (Matching _shops_grid.blade.php) -->
+          <div class="section-header" style="margin-top: 14px;">
+            <h3><i class="fa-solid fa-store" style="color: var(--primary-purple);"></i> Stores Closer to You in <span id="proximity-city-name" style="color: var(--primary-purple);">Uyo</span></h3>
+            <span class="see-all" onclick="openLocationModal()">Change Area</span>
+          </div>
+          <div class="shops-quad-grid" id="home-shops-grid">
+            <!-- Dynamically populated from active eligible shops -->
+          </div>
+
+          <!-- Fresh Verified Storefront Feed -->
+          <div class="section-header" style="margin-top: 14px;">
+            <h3>Verified Storefront Listings</h3>
+            <span class="see-all" id="products-count-label">Loading...</span>
+          </div>
+          <div class="product-grid" id="home-products-grid">
+            <!-- Dynamically populated from API -->
+          </div>
+        </section>
+
+        <!-- 3. EXPLORE & SEARCH SCREEN -->
+        <section class="screen-view" id="view-explore">
+          <div class="app-bar">
+            <div class="app-bar-brand">
+              <div class="app-bar-title">Explore Catalog</div>
+            </div>
+            <button class="icon-btn" onclick="switchTab('cart')">
+              <i class="fa-solid fa-bag-shopping"></i>
+              <div class="badge-count cart-badge-num">0</div>
+            </button>
+          </div>
+          <div style="padding: 16px; background: white; border-bottom: 1px solid var(--border-light);">
+            <div class="search-pill" style="box-shadow: none; border: 1px solid var(--border-light);">
+              <i class="fa-solid fa-magnifying-glass" style="color: var(--primary-purple);"></i>
+              <input type="text" id="catalog-search-input" placeholder="Type keyword to filter..." oninput="handleSearch(this.value)">
+            </div>
+            <div style="display: flex; gap: 8px; overflow-x: auto; margin-top: 10px; scrollbar-width: none;" id="explore-category-pills">
+              <!-- Category pills -->
+            </div>
+          </div>
+          <div class="product-grid" id="explore-products-grid" style="padding-top: 16px;">
+            <!-- Filtered products -->
+          </div>
+        </section>
+
+        <!-- 4. PRODUCT DETAILS VIEW -->
+        <section class="screen-view" id="view-details">
+          <div class="app-bar">
+            <button class="icon-btn" onclick="switchTab('home')"><i class="fa-solid fa-chevron-left"></i></button>
+            <div class="app-bar-title">Product Details</div>
+            <button class="icon-btn" onclick="switchTab('cart')">
+              <i class="fa-solid fa-bag-shopping"></i>
+              <div class="badge-count cart-badge-num">0</div>
+            </button>
+          </div>
+          <div id="details-content">
+            <!-- Dynamically loaded product details -->
+          </div>
+        </section>
+
+        <!-- 5. SHOPPING BAG / CART SCREEN -->
+        <section class="screen-view" id="view-cart">
+          <div class="app-bar">
+            <div class="app-bar-title">My Shopping Bag</div>
+            <span class="see-all" style="color: white; font-weight: bold;" onclick="clearCart()">Clear</span>
+          </div>
+          <div id="cart-content-area" style="padding: 16px;">
+            <!-- Cart items list -->
+          </div>
+        </section>
+
+        <!-- 6. DIRECTIONAL CHECKOUT SCREEN -->
+        <section class="screen-view" id="view-checkout">
+          <div class="app-bar">
+            <button class="icon-btn" onclick="switchTab('cart')"><i class="fa-solid fa-chevron-left"></i></button>
+            <div class="app-bar-title">Directional Checkout</div>
+            <div></div>
+          </div>
+          <div style="padding: 16px;" id="checkout-content-area">
+            <!-- Interactive Checkout -->
+          </div>
+        </section>
+
+        <!-- 7. IN-SHOP INSPECTION PASS SCREEN -->
+        <section class="screen-view" id="view-reservation-pass">
+          <div class="app-bar">
+            <button class="icon-btn" onclick="switchTab('home')"><i class="fa-solid fa-chevron-left"></i></button>
+            <div class="app-bar-title">In-Shop Inspection Pass</div>
+            <div></div>
+          </div>
+          <div style="padding: 20px;" id="reservation-pass-area">
+            <!-- Inspection Pass with Code and QR -->
+          </div>
+        </section>
+
+        <!-- 8. ORDERS & LIVE TRACKING SCREEN -->
+        <section class="screen-view" id="view-orders">
+          <div class="app-bar">
+            <div class="app-bar-title">Order Tracking & PIN</div>
+            <button class="icon-btn" onclick="loadOrders()"><i class="fa-solid fa-rotate-right"></i></button>
+          </div>
+          <div style="padding: 16px;" id="orders-content-area">
+            <!-- Orders & PIN -->
+          </div>
+        </section>
+
+        <!-- 9. 5% SOVEREIGN CASHBACK WALLET SCREEN -->
+        <section class="screen-view" id="view-wallet">
+          <div class="app-bar">
+            <div class="app-bar-title">Sovereign Rewards Wallet</div>
+            <div></div>
+          </div>
+          <div style="padding: 16px;">
+            <div class="otp-gold-card" style="text-align: left;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="otp-title">AVAILABLE CASHBACK</span>
+                <span style="background: var(--primary-purple); color: white; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 900;">5% REWARD</span>
+              </div>
+              <h2 style="font-size: 32px; font-weight: 900; color: var(--primary-dark); margin: 10px 0;">₦2,500.00</h2>
+              <p style="font-size: 12px; font-weight: 700; color: var(--text-primary);">Pending Maturation: ₦500.00</p>
+            </div>
+
+            <div style="background: white; border-radius: 16px; padding: 16px; border: 1px solid var(--border-light); margin-bottom: 16px;">
+              <h4 style="font-size: 14px; font-weight: 800; margin-bottom: 12px;">
+                <i class="fa-solid fa-scale-balanced" style="color: var(--primary-purple);"></i> Strict 90/5/5 Guarantee
+              </h4>
+              <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.4; margin-bottom: 12px;">
+                Calculated strictly using arbitrary-precision BCMath on every settled order in Akwa Ibom State:
+              </p>
+              <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+                <span style="background: rgba(94, 23, 235, 0.1); color: var(--primary-purple); font-weight: 900; padding: 4px 8px; border-radius: 6px; font-size: 11px;">90%</span>
+                <span style="font-size: 12px; font-weight: 600;">Merchant Settlement</span>
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+                <span style="background: rgba(94, 23, 235, 0.1); color: var(--primary-purple); font-weight: 900; padding: 4px 8px; border-radius: 6px; font-size: 11px;">5%</span>
+                <span style="font-size: 12px; font-weight: 600;">Logistics Fleet Delivery</span>
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <span style="background: var(--gold-light); color: var(--gold-dark); font-weight: 900; padding: 4px 8px; border-radius: 6px; font-size: 11px;">5%</span>
+                <span style="font-size: 12px; font-weight: 600;">Customer Sovereign Cashback</span>
+              </div>
+            </div>
+
+            <div style="background: white; border-radius: 16px; padding: 16px; border: 1px solid var(--border-light);">
+              <h4 style="font-size: 14px; font-weight: 800; margin-bottom: 10px;">Redemption Rules</h4>
+              <ul style="font-size: 12px; color: var(--text-secondary); line-height: 1.5; padding-left: 18px;">
+                <li>Toggle cashback discount directly at checkout.</li>
+                <li>Redeemable up to 50% of merchandise total per order.</li>
+                <li>Zero point expiration on active shopper accounts.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- 10. ACCOUNT HUB SCREEN -->
+        <section class="screen-view" id="view-account">
+          <div style="background: var(--purple-gradient); padding: 50px 20px 20px 20px; color: white;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <div style="width: 54px; height: 54px; border-radius: 50%; background: white; color: var(--primary-purple); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 900; border: 2px solid var(--secondary-gold);">
+                V
+              </div>
+              <div>
+                <h3 style="font-size: 17px; font-weight: 800;">Victor Akpan</h3>
+                <p style="font-size: 12px; color: rgba(255,255,255,0.8);">customer@victoriousmarket.com.ng</p>
+                <div style="display: inline-block; background: var(--secondary-gold); color: #1a1a1a; font-size: 9px; font-weight: 900; padding: 2px 8px; border-radius: 10px; margin-top: 4px;">
+                  VERIFIED SHOPPER
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="padding: 16px;">
+            <div style="background: white; border-radius: 16px; border: 1px solid var(--border-light); overflow: hidden;">
+              <div class="menu-row" onclick="switchTab('orders')" style="padding: 14px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-light); cursor: pointer;">
+                <i class="fa-solid fa-receipt" style="color: var(--primary-purple); width: 20px;"></i>
+                <div style="flex: 1;"><div style="font-size: 13px; font-weight: 700;">My Orders & Tracking</div><div style="font-size: 11px; color: var(--text-secondary);">Live courier status and OTP PINs</div></div>
+                <i class="fa-solid fa-chevron-right" style="font-size: 11px; color: var(--text-muted);"></i>
+              </div>
+              <div class="menu-row" onclick="switchTab('wallet')" style="padding: 14px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-light); cursor: pointer;">
+                <i class="fa-solid fa-wallet" style="color: var(--primary-purple); width: 20px;"></i>
+                <div style="flex: 1;"><div style="font-size: 13px; font-weight: 700;">Sovereign Cashback Wallet</div><div style="font-size: 11px; color: var(--text-secondary);">₦2,500.00 Available</div></div>
+                <i class="fa-solid fa-chevron-right" style="font-size: 11px; color: var(--text-muted);"></i>
+              </div>
+              <div class="menu-row" onclick="openReservationDemo()" style="padding: 14px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-light); cursor: pointer;">
+                <i class="fa-solid fa-store" style="color: var(--primary-purple); width: 20px;"></i>
+                <div style="flex: 1;"><div style="font-size: 13px; font-weight: 700;">In-Shop Inspection Passes</div><div style="font-size: 11px; color: var(--text-secondary);">RES-XXXXXXXX verification</div></div>
+                <i class="fa-solid fa-chevron-right" style="font-size: 11px; color: var(--text-muted);"></i>
+              </div>
+              <div class="menu-row" onclick="triggerCall()" style="padding: 14px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-light); cursor: pointer;">
+                <i class="fa-solid fa-phone" style="color: var(--primary-purple); width: 20px;"></i>
+                <div style="flex: 1;"><div style="font-size: 13px; font-weight: 700;">Call to Order</div><div style="font-size: 11px; color: var(--text-secondary);">+2349118949035</div></div>
+                <i class="fa-solid fa-chevron-right" style="font-size: 11px; color: var(--text-muted);"></i>
+              </div>
+              <div class="menu-row" onclick="triggerWhatsApp()" style="padding: 14px; display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                <i class="fa-brands fa-whatsapp" style="color: #25D366; width: 20px; font-size: 18px;"></i>
+                <div style="flex: 1;"><div style="font-size: 13px; font-weight: 700;">WhatsApp Support Desk</div><div style="font-size: 11px; color: var(--text-secondary);">Instant customer service</div></div>
+                <i class="fa-solid fa-chevron-right" style="font-size: 11px; color: var(--text-muted);"></i>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 9. SHOP PROFILE SCREEN (Matching shop.blade.php) -->
+        <section class="screen-view" id="view-shop">
+          <div class="app-bar">
+            <button class="icon-btn" onclick="switchTab('home')" style="border: none;">
+              <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <div class="app-bar-brand" style="margin-left: 8px;">
+              <div class="app-bar-title" id="shop-header-title">Merchant Storefront</div>
+            </div>
+            <button class="icon-btn" onclick="switchTab('cart')">
+              <i class="fa-solid fa-bag-shopping"></i>
+              <div class="badge-count cart-badge-num">0</div>
+            </button>
+          </div>
+          <div id="shop-profile-content">
+            <!-- Dynamically populated shop banner, badge, hours and product catalog -->
+          </div>
+        </section>
+
+      </main>
+
+      <!-- Bottom Navigation Bar (5 Tabs) -->
+      <nav class="bottom-nav-bar">
+        <div class="nav-item active" id="tab-home" onclick="switchTab('home')">
+          <i class="fa-solid fa-store"></i>
+          <span>Market</span>
+        </div>
+        <div class="nav-item" id="tab-explore" onclick="switchTab('explore')">
+          <i class="fa-solid fa-compass"></i>
+          <span>Explore</span>
+        </div>
+        <div class="nav-item" id="tab-cart" onclick="switchTab('cart')">
+          <i class="fa-solid fa-bag-shopping"></i>
+          <span class="nav-badge cart-badge-num">0</span>
+          <span>Bag</span>
+        </div>
+        <div class="nav-item" id="tab-orders" onclick="switchTab('orders')">
+          <i class="fa-solid fa-receipt"></i>
+          <span>Orders</span>
+        </div>
+        <div class="nav-item" id="tab-account" onclick="switchTab('account')">
+          <i class="fa-solid fa-user"></i>
+          <span>Account</span>
+        </div>
+      </nav>
+
+      <!-- Home Indicator -->
+      <div class="phone-home-indicator"></div>
+
+      <!-- Interactive Location Modal (Matching newVmarket vmLocationModal) -->
+      <div class="location-modal-overlay" id="locationModalOverlay" onclick="closeLocationModal()"></div>
+      <div class="location-modal" id="locationModal">
+        <div class="location-modal-handle"></div>
+        <div class="location-modal-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-location-dot" style="color: var(--primary-purple); font-size: 17px;"></i>
+            <h3 style="font-size: 15px; font-weight: 800; margin: 0; color: #1E293B;">Choose Delivery Location</h3>
+          </div>
+          <button class="modal-close-btn" onclick="closeLocationModal()">×</button>
+        </div>
+
+        <div class="location-modal-body">
+          <p style="font-size: 11.5px; color: var(--text-secondary); margin: 0 0 10px 0; line-height: 1.4;">
+            Select your residential LGA across Nigeria to evaluate real-time in-shop pickup merchants and active directional transit lanes.
+          </p>
+
+          <div class="lga-search-box">
+            <i class="fa-solid fa-magnifying-glass" style="color: var(--text-muted); font-size: 13px;"></i>
+            <input type="text" id="lgaSearchInput" placeholder="Type your residential LGA (e.g. Uyo, Eket, Ikeja)..." oninput="handleLgaSearch(this.value)">
+            <button type="button" class="search-clear-btn" onclick="clearLgaSearch()">×</button>
+          </div>
+
+          <div class="lga-suggestions-list" id="lgaSuggestionsList" style="display: none;"></div>
+
+          <div style="margin: 12px 0 6px 0; font-size: 10.5px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;">
+            POPULAR LOCAL GOVERNMENTS:
+          </div>
+          <div class="popular-chips-wrap">
+            <button type="button" class="city-chip active" onclick="selectLocation('Uyo', 'Akwa Ibom', 69, this)">
+              <span class="dot"></span> Uyo LGA
+            </button>
+            <button type="button" class="city-chip" onclick="selectLocation('Eket', 'Akwa Ibom', 70, this)">
+              <span class="dot"></span> Eket LGA
+            </button>
+            <button type="button" class="city-chip" onclick="selectLocation('Ikot Ekpene', 'Akwa Ibom', 71, this)">
+              <span class="dot"></span> Ikot Ekpene LGA
+            </button>
+            <button type="button" class="city-chip" onclick="selectLocation('Oron', 'Akwa Ibom', 72, this)">
+              <span class="dot"></span> Oron LGA
+            </button>
+            <button type="button" class="city-chip" onclick="selectLocation('Abak', 'Akwa Ibom', 65, this)">
+              <span class="dot"></span> Abak LGA
+            </button>
+            <button type="button" class="city-chip" onclick="selectLocation('Ikeja', 'Lagos', 101, this)">
+              <span class="dot"></span> Ikeja (Lagos)
+            </button>
+          </div>
+
+          <!-- Selected Location Feedback Card (Matching vmSelectedLocCard) -->
+          <div class="location-feedback-card" id="locationFeedbackCard">
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <div class="pin-badge"><i class="fa-solid fa-map-pin"></i></div>
+              <div style="flex: 1;">
+                <div id="modalPreviewCity" style="font-size: 13px; font-weight: 800; color: #0F172A;">Uyo, Akwa Ibom State</div>
+                <div id="modalPreviewStatus" style="font-size: 11px; font-weight: 700; color: #16A34A; margin-top: 2px;">
+                  ⚡ In-Shop Pickup & Same-Day Delivery Active
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn-primary" style="margin-top: 14px; width: 100%; padding: 11px; font-size: 13px;" onclick="confirmLocationSelection()">
+            Done (Apply Location)
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
