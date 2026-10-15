@@ -861,10 +861,88 @@ function renderStoresCloserToYou() {
   `).join('');
 }
 
+// Comprehensive Nigerian Geography Dataset for Multi-State Support
+const nigeriaGeography = [
+  // Akwa Ibom State
+  { name: 'Uyo', state: 'Akwa Ibom', id: 69 },
+  { name: 'Eket', state: 'Akwa Ibom', id: 70 },
+  { name: 'Ikot Ekpene', state: 'Akwa Ibom', id: 71 },
+  { name: 'Oron', state: 'Akwa Ibom', id: 72 },
+  { name: 'Abak', state: 'Akwa Ibom', id: 65 },
+  { name: 'Ikot Abasi', state: 'Akwa Ibom', id: 66 },
+  { name: 'Etinan', state: 'Akwa Ibom', id: 67 },
+  { name: 'Ibiono Ibom', state: 'Akwa Ibom', id: 68 },
+  { name: 'Itu', state: 'Akwa Ibom', id: 73 },
+
+  // Lagos State
+  { name: 'Ikeja', state: 'Lagos', id: 101 },
+  { name: 'Lekki / Eti-Osa', state: 'Lagos', id: 102 },
+  { name: 'Surulere', state: 'Lagos', id: 103 },
+  { name: 'Alimosho', state: 'Lagos', id: 104 },
+  { name: 'Lagos Island', state: 'Lagos', id: 105 },
+  { name: 'Kosofe', state: 'Lagos', id: 106 },
+  { name: 'Oshodi-Isolo', state: 'Lagos', id: 107 },
+  { name: 'Ikorodu', state: 'Lagos', id: 108 },
+
+  // Rivers State
+  { name: 'Port Harcourt', state: 'Rivers', id: 201 },
+  { name: 'Obio-Akpor', state: 'Rivers', id: 202 },
+  { name: 'Eleme', state: 'Rivers', id: 203 },
+  { name: 'Oyigbo', state: 'Rivers', id: 204 },
+
+  // FCT Abuja
+  { name: 'Abuja Municipal (AMAC)', state: 'FCT Abuja', id: 301 },
+  { name: 'Bwari', state: 'FCT Abuja', id: 302 },
+  { name: 'Gwagwalada', state: 'FCT Abuja', id: 303 },
+  { name: 'Kuje', state: 'FCT Abuja', id: 304 },
+
+  // Cross River State
+  { name: 'Calabar Municipal', state: 'Cross River', id: 401 },
+  { name: 'Calabar South', state: 'Cross River', id: 402 },
+  { name: 'Ikom', state: 'Cross River', id: 403 },
+
+  // Delta State
+  { name: 'Warri South', state: 'Delta', id: 501 },
+  { name: 'Oshimili South (Asaba)', state: 'Delta', id: 502 },
+  { name: 'Uvwie (Effurun)', state: 'Delta', id: 503 },
+
+  // Edo State
+  { name: 'Oredo (Benin City)', state: 'Edo', id: 601 },
+  { name: 'Ikpoba-Okha', state: 'Edo', id: 602 },
+
+  // Enugu State
+  { name: 'Enugu North', state: 'Enugu', id: 701 },
+  { name: 'Enugu South', state: 'Enugu', id: 702 },
+
+  // Anambra State
+  { name: 'Onitsha North', state: 'Anambra', id: 801 },
+  { name: 'Awka South', state: 'Anambra', id: 803 },
+
+  // Oyo State
+  { name: 'Ibadan North', state: 'Oyo', id: 901 },
+  { name: 'Ibadan South-West', state: 'Oyo', id: 902 },
+
+  // Kano State
+  { name: 'Kano Municipal', state: 'Kano', id: 1001 },
+  { name: 'Fagge', state: 'Kano', id: 1003 },
+
+  // Kaduna State
+  { name: 'Kaduna North', state: 'Kaduna', id: 1101 },
+  { name: 'Zaria', state: 'Kaduna', id: 1103 },
+
+  // Imo State
+  { name: 'Owerri Municipal', state: 'Imo', id: 1201 },
+
+  // Abia State
+  { name: 'Aba North', state: 'Abia', id: 1301 },
+  { name: 'Umuahia North', state: 'Abia', id: 1303 }
+];
+
 // Interactive Location Modal Functions (Matching newVmarket vmLocationModal)
 function openLocationModal() {
   document.getElementById('locationModal').classList.add('active');
   document.getElementById('locationModalOverlay').classList.add('active');
+  handleStateFilterChange(state.selectedState || 'Akwa Ibom');
   updateModalFeedback(state.selectedCity, state.selectedState, state.selectedLgaId);
 }
 
@@ -875,13 +953,41 @@ function closeLocationModal() {
   if (sug) sug.style.display = 'none';
 }
 
+function handleStateFilterChange(stateName) {
+  const container = document.getElementById('modalStateLgasWrap');
+  const header = document.getElementById('modalLgasHeader');
+  if (!container) return;
+
+  if (header) {
+    header.textContent = `LOCAL GOVERNMENTS IN ${stateName.toUpperCase()}:`;
+  }
+
+  const lgas = stateName === 'All' 
+    ? nigeriaGeography 
+    : nigeriaGeography.filter(l => l.state.toLowerCase() === stateName.toLowerCase());
+
+  if (lgas.length === 0) {
+    container.innerHTML = `<p style="font-size: 11px; color: var(--text-secondary); margin: 4px 0;">Dispatches to ${stateName} via Nationwide Transit.</p>`;
+    return;
+  }
+
+  container.innerHTML = lgas.map(lga => {
+    const isSelected = (state.pendingLgaId || state.selectedLgaId) === lga.id;
+    return `
+      <button type="button" class="city-chip ${isSelected ? 'active' : ''}" onclick="selectLocation('${lga.name}', '${lga.state}', ${lga.id}, this)">
+        <span class="dot"></span> ${lga.name} LGA
+      </button>
+    `;
+  }).join('');
+}
+
 function selectLocation(city, stateName, lgaId, btnEl) {
   state.pendingCity = city;
   state.pendingState = stateName;
   state.pendingLgaId = lgaId;
 
   if (btnEl) {
-    btnEl.parentElement.querySelectorAll('.city-chip').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.city-chip').forEach(c => c.classList.remove('active'));
     btnEl.classList.add('active');
   }
 
@@ -896,7 +1002,7 @@ function updateModalFeedback(city, stateName, lgaId) {
   if (hasLocal || [69, 70, 71, 72].includes(lgaId)) {
     statusText = '⚡ In-Shop Pickup & Same-Day Delivery Active';
     badgeText = '⚡ In-Shop Pickup & Same-Day Active';
-  } else if ([65, 66, 101, 102].includes(lgaId)) {
+  } else if ([65, 66, 67, 101, 102, 201, 301].includes(lgaId)) {
     statusText = '🚚 Transit Delivery Corridor Active (12-24 hrs)';
     badgeText = '🚚 Transit Delivery Corridor Active';
   } else {
@@ -906,7 +1012,7 @@ function updateModalFeedback(city, stateName, lgaId) {
 
   const prevCity = document.getElementById('modalPreviewCity');
   const prevStatus = document.getElementById('modalPreviewStatus');
-  if (prevCity) prevCity.textContent = `${city}, ${stateName}`;
+  if (prevCity) prevCity.textContent = `${city}, ${stateName} State`;
   if (prevStatus) prevStatus.textContent = statusText;
 
   state.statusBadge = badgeText;
@@ -920,27 +1026,13 @@ function handleLgaSearch(query) {
   }
 
   const q = query.toLowerCase().trim();
-  const allLgas = [
-    { name: 'Uyo', state: 'Akwa Ibom', id: 69 },
-    { name: 'Eket', state: 'Akwa Ibom', id: 70 },
-    { name: 'Ikot Ekpene', state: 'Akwa Ibom', id: 71 },
-    { name: 'Oron', state: 'Akwa Ibom', id: 72 },
-    { name: 'Abak', state: 'Akwa Ibom', id: 65 },
-    { name: 'Ikot Abasi', state: 'Akwa Ibom', id: 66 },
-    { name: 'Etinan', state: 'Akwa Ibom', id: 67 },
-    { name: 'Ikeja', state: 'Lagos', id: 101 },
-    { name: 'Lekki / Eti-Osa', state: 'Lagos', id: 102 },
-    { name: 'Port Harcourt', state: 'Rivers', id: 201 },
-    { name: 'Abuja Municipal (AMAC)', state: 'FCT Abuja', id: 301 }
-  ];
-
-  const matched = allLgas.filter(l => l.name.toLowerCase().includes(q) || l.state.toLowerCase().includes(q));
+  const matched = nigeriaGeography.filter(l => l.name.toLowerCase().includes(q) || l.state.toLowerCase().includes(q));
 
   if (matched.length > 0) {
     sug.innerHTML = matched.map(m => `
       <div class="lga-suggestion-item" onclick="selectLocation('${m.name}', '${m.state}', ${m.id}); document.getElementById('lgaSearchInput').value = '${m.name}'; document.getElementById('lgaSuggestionsList').style.display = 'none';">
         <i class="fa-solid fa-location-dot" style="color: var(--primary-purple); margin-right: 6px;"></i>
-        <strong>${m.name} LGA</strong> <span style="color: var(--text-secondary); font-size: 11px;">(${m.state})</span>
+        <strong>${m.name} LGA</strong> <span style="color: var(--text-secondary); font-size: 11px;">(${m.state} State)</span>
       </div>
     `).join('');
     sug.style.display = 'block';
@@ -969,6 +1061,10 @@ function confirmLocationSelection() {
   // Update proximity strip
   const badge = document.getElementById('proximity-coverage-badge');
   if (badge) badge.textContent = state.statusBadge;
+
+  // Update stores proximity title
+  const proxCity = document.getElementById('proximity-city-name');
+  if (proxCity) proxCity.textContent = state.selectedCity;
 
   closeLocationModal();
 
