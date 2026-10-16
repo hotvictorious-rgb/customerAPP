@@ -3,7 +3,6 @@ class ShopModel {
   final String name;
   final String? slug;
   final String? address;
-  final String? phone;
   final int? lgaId;
   final String? lgaName;
   final String? logoUrl;
@@ -16,7 +15,6 @@ class ShopModel {
     required this.name,
     this.slug,
     this.address,
-    this.phone,
     this.lgaId,
     this.lgaName,
     this.logoUrl,
@@ -35,7 +33,6 @@ class ShopModel {
       name: json['name'] as String? ?? 'Merchant Shop',
       slug: json['slug'] as String?,
       address: json['address'] as String?,
-      phone: json['phone'] as String?,
       lgaId: json['lga_id'] as int?,
       lgaName: lName ?? json['lga_name'] as String?,
       logoUrl: json['logo_url'] ?? json['image_path'] as String?,

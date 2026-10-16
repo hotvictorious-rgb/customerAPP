@@ -46,6 +46,16 @@ class ApiClient {
             }
           }
 
+          // ZERO-KNOWLEDGE SECURITY MASKING:
+          if (statusCode != null && statusCode >= 500) {
+            message = 'An unexpected server error occurred. Please try again later.';
+            errors = null;
+          } else if (statusCode == 401) {
+            message = 'Authentication required or session expired.';
+          } else if (statusCode == 403) {
+            message = 'Access denied. You do not have permission for this action.';
+          }
+
           final customException = ApiException(
             message: message,
             statusCode: statusCode,

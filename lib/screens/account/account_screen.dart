@@ -10,11 +10,90 @@ import '../../widgets/brand_app_bar.dart';
 import '../address/address_list_screen.dart';
 import '../auth/login_screen.dart';
 import '../orders/orders_list_screen.dart';
+import '../reservations/pickup_reservation_pass_screen.dart';
+import '../returns/returns_screen.dart';
 import '../support/support_screen.dart';
 import '../wallet/wallet_cashback_screen.dart';
+import '../../providers/checkout_provider.dart';
 
 class AccountScreen extends StatelessWidget {
   const AccountScreen({super.key});
+
+  void _handleInspectionPassNavigation(BuildContext context) {
+    final checkout = context.read<CheckoutProvider>();
+    if (checkout.activeReservation != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PickupReservationPassScreen(reservation: checkout.activeReservation!),
+        ),
+      );
+      return;
+    }
+
+    final codeCtrl = TextEditingController(text: 'RES-884291');
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.storefront, color: AppColors.primaryPurple, size: 22),
+            SizedBox(width: 8),
+            Text('Inspection Pass Lookup', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Enter your 10-character reservation code to view your QR pass:',
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: codeCtrl,
+              textCapitalization: TextCapitalization.characters,
+              decoration: InputDecoration(
+                hintText: 'e.g. RES-884291',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                prefixIcon: const Icon(Icons.qr_code),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryPurple,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              final code = codeCtrl.text.trim();
+              if (code.isEmpty) return;
+              Navigator.pop(ctx);
+              final res = await checkout.lookupReservation(code);
+              if (res != null && context.mounted) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => PickupReservationPassScreen(reservation: res)),
+                );
+              } else if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Reservation not found. Please verify the code.')),
+                );
+              }
+            },
+            child: const Text('Lookup Pass'),
+          ),
+        ],
+      ),
+    );
+  }
 
   Future<void> _makeCall() async {
     final uri = Uri.parse('tel:${AppConstants.callToOrderPhone}');
@@ -236,6 +315,22 @@ class AccountScreen extends StatelessWidget {
                     subtitle: 'View available balance & 90/5/5 ledger',
                     onTap: () {
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const WalletCashbackScreen()));
+                    },
+                  ),
+                  const Divider(height: 1, indent: 56),
+                  _buildMenuItem(
+                    icon: Icons.storefront,
+                    title: 'In-Shop Inspection Passes',
+                    subtitle: 'Active 24-hr stock hold passes & QR verification',
+                    onTap: () => _handleInspectionPassNavigation(context),
+                  ),
+                  const Divider(height: 1, indent: 56),
+                  _buildMenuItem(
+                    icon: Icons.assignment_return,
+                    title: 'Returns & Refund Disputes',
+                    subtitle: '24-hour escrow protection & return claims',
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const ReturnsScreen()));
                     },
                   ),
                   const Divider(height: 1, indent: 56),

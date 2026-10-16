@@ -55,6 +55,16 @@ class AuthProvider extends ChangeNotifier {
       if (res.data['status'] == true) {
         final token = res.data['token'] as String;
         final userData = UserModel.fromJson(res.data['user']);
+
+        // ZERO-KNOWLEDGE CUSTOMER ROLE INVARIANT:
+        if (userData.userType != 'customer') {
+          await storageService.clearAll();
+          _errorMessage = 'Invalid credentials or unauthorized account.';
+          _isLoading = false;
+          notifyListeners();
+          return false;
+        }
+
         await storageService.saveToken(token);
         await storageService.saveUser(userData);
         _user = userData;
@@ -62,12 +72,16 @@ class AuthProvider extends ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        _errorMessage = res.data['message'] ?? 'Login failed.';
+        _errorMessage = 'Invalid credentials or unauthorized account.';
       }
     } on ApiException catch (e) {
-      _errorMessage = e.message;
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred during login.';
+      if (e.statusCode == 401 || e.statusCode == 403) {
+        _errorMessage = 'Invalid credentials or unauthorized account.';
+      } else {
+        _errorMessage = e.message;
+      }
+    } catch (_) {
+      _errorMessage = 'Unable to connect to service. Please check network connection.';
     }
 
     _isLoading = false;

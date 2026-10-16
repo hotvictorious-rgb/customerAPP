@@ -42,9 +42,11 @@ class OrderProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<OrderModel?> fetchOrderDetails(String orderNumber) async {
-    _isLoading = true;
-    notifyListeners();
+  Future<OrderModel?> fetchOrderDetails(String orderNumber, {bool silent = false}) async {
+    if (!silent) {
+      _isLoading = true;
+      notifyListeners();
+    }
 
     try {
       final res = await apiClient.get('${ApiEndpoints.customerOrderDetails}$orderNumber');
@@ -73,7 +75,7 @@ class OrderProvider extends ChangeNotifier {
       );
 
       if (res.data['status'] == true) {
-        await fetchOrderDetails(orderNumber);
+        await fetchOrderDetails(orderNumber, silent: true);
         _isLoading = false;
         notifyListeners();
         return true;
@@ -94,8 +96,8 @@ class OrderProvider extends ChangeNotifier {
   void startLiveTracking(String orderNumber) {
     stopLiveTracking();
     fetchOrderDetails(orderNumber);
-    _pollingTimer = Timer.periodic(const Duration(seconds: 10), (_) {
-      fetchOrderDetails(orderNumber);
+    _pollingTimer = Timer.periodic(const Duration(seconds: 8), (_) {
+      fetchOrderDetails(orderNumber, silent: true);
     });
   }
 

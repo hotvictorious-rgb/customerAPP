@@ -26,6 +26,12 @@ class CartProvider extends ChangeNotifier {
   String get formattedSubtotal => CurrencyFormatter.format(rawSubtotal);
 
   int? get shopId => _items.isNotEmpty ? _items.first.product.shopId : null;
+  String? get currentShopName => _items.isNotEmpty ? (_items.first.product.shop?.name ?? 'Merchant Shop') : null;
+
+  bool isDifferentShop(ProductModel product) {
+    if (_items.isEmpty) return false;
+    return _items.first.product.shopId != product.shopId;
+  }
 
   void addToCart(ProductModel product, {int quantity = 1}) {
     final existingIndex = _items.indexWhere((i) => i.product.id == product.id);
@@ -35,6 +41,11 @@ class CartProvider extends ChangeNotifier {
       _items.add(CartItem(product: product, quantity: quantity));
     }
     notifyListeners();
+  }
+
+  void clearAndAdd(ProductModel product, {int quantity = 1}) {
+    _items.clear();
+    addToCart(product, quantity: quantity);
   }
 
   void updateQuantity(int productId, int quantity) {

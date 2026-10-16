@@ -94,6 +94,40 @@ class ProductCard extends StatelessWidget {
                         ),
                       ),
                     ),
+                  if (product.isFresh)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                        decoration: BoxDecoration(
+                          color: AppColors.success,
+                          borderRadius: BorderRadius.circular(5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.12),
+                              blurRadius: 3,
+                            ),
+                          ],
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.eco, color: Colors.white, size: 9.5),
+                            SizedBox(width: 2.5),
+                            Text(
+                              '7-DAY FRESH',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 8,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   // In-Shop Pickup indicator
                   if (product.shop?.pickupEnabled == true)
                     Positioned(
@@ -210,6 +244,50 @@ class ProductCard extends StatelessWidget {
                         Consumer<CartProvider>(
                           builder: (context, cart, _) => InkWell(
                             onTap: () {
+                              if (cart.isDifferentShop(product)) {
+                                showDialog(
+                                  context: context,
+                                  builder: (ctx) => AlertDialog(
+                                    title: const Row(
+                                      children: [
+                                        Icon(Icons.store, color: AppColors.primaryPurple, size: 20),
+                                        SizedBox(width: 8),
+                                        Text('Single Store Checkout', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                                      ],
+                                    ),
+                                    content: Text(
+                                      'Your bag currently contains items from ${cart.currentShopName}. Would you like to clear your bag and start a new order from ${product.shop?.name ?? "this merchant"}?',
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(ctx),
+                                        child: const Text('Keep Current Bag'),
+                                      ),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppColors.primaryPurple,
+                                          foregroundColor: Colors.white,
+                                        ),
+                                        onPressed: () {
+                                          Navigator.pop(ctx);
+                                          cart.clearAndAdd(product);
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Bag cleared and added ${product.name}'),
+                                              backgroundColor: AppColors.primaryDarkPurple,
+                                              behavior: SnackBarBehavior.floating,
+                                            ),
+                                          );
+                                        },
+                                        child: const Text('Start New Bag'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                return;
+                              }
+
                               cart.addToCart(product);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(

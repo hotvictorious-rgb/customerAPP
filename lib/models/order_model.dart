@@ -7,6 +7,10 @@ class OrderItemModel {
   final String productName;
   final String unitPrice;
   final int quantity;
+  final int? acceptedQuantity;
+  final int? rejectedQuantity;
+  final String? rejectionCategory;
+  final String? defectPhoto;
   final String lineTotal;
   final String? thumbnail;
 
@@ -16,6 +20,10 @@ class OrderItemModel {
     required this.productName,
     required this.unitPrice,
     required this.quantity,
+    this.acceptedQuantity,
+    this.rejectedQuantity,
+    this.rejectionCategory,
+    this.defectPhoto,
     required this.lineTotal,
     this.thumbnail,
   });
@@ -27,13 +35,18 @@ class OrderItemModel {
       productName: json['product'] != null ? json['product']['name'] : (json['name'] ?? 'Product Item'),
       unitPrice: json['unit_price']?.toString() ?? '0.00',
       quantity: json['quantity'] as int? ?? 1,
+      acceptedQuantity: json['accepted_quantity'] as int?,
+      rejectedQuantity: json['rejected_quantity'] as int?,
+      rejectionCategory: json['rejection_category'] as String?,
+      defectPhoto: json['defect_photo'] as String?,
       lineTotal: json['line_total']?.toString() ?? '0.00',
-      thumbnail: json['product'] != null ? json['product']['thumbnail'] : null,
+      thumbnail: json['product'] != null ? json['product']['thumbnail'] : (json['thumbnail'] as String?),
     );
   }
 
   String get formattedPrice => CurrencyFormatter.format(unitPrice);
   String get formattedTotal => CurrencyFormatter.format(lineTotal);
+  bool get hasRejection => (rejectedQuantity ?? 0) > 0;
 }
 
 class OrderModel {
@@ -45,6 +58,7 @@ class OrderModel {
   final String merchandiseSubtotal;
   final String deliveryFee;
   final String cashbackRedeemed;
+  final String walletCreditApplied;
   final String grandTotal;
   final String customerCashback5;
   final String? verificationCode; // Secret 6-digit Delivery OTP
@@ -57,6 +71,15 @@ class OrderModel {
   final List<OrderItemModel> items;
   final String createdAt;
   final String? riderArrivedAt;
+  final bool hasRiderArrived;
+  final bool isHandshakePending;
+
+  // Visual Audit Trail & Proofs
+  final String? pickupCounterPhoto;
+  final String? doorstepDeliveryPhoto;
+  final String? deliveryAttemptPhoto;
+  final String? deliveryFailureReason;
+  final List<String> itemRejectionPhotos;
 
   OrderModel({
     required this.id,
@@ -67,6 +90,7 @@ class OrderModel {
     required this.merchandiseSubtotal,
     required this.deliveryFee,
     required this.cashbackRedeemed,
+    this.walletCreditApplied = '0.00',
     required this.grandTotal,
     required this.customerCashback5,
     this.verificationCode,
@@ -79,6 +103,13 @@ class OrderModel {
     this.items = const [],
     required this.createdAt,
     this.riderArrivedAt,
+    this.hasRiderArrived = false,
+    this.isHandshakePending = false,
+    this.pickupCounterPhoto,
+    this.doorstepDeliveryPhoto,
+    this.deliveryAttemptPhoto,
+    this.deliveryFailureReason,
+    this.itemRejectionPhotos = const [],
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
@@ -101,18 +132,45 @@ class OrderModel {
       }
     }
 
+    final arrived = json['has_rider_arrived'] == true || json['rider_arrived_at'] != null;
+    final status = json['order_status'] as String? ?? 'confirmed';
+
+    // Parse Visual Audit Trail
+    String? pickupPhoto;
+    String? deliveryPhoto;
+    String? attemptPhoto;
+    String? attemptReason;
+    List<String> rejectionPhotos = [];
+
+    if (json['visual_audit_trail'] is Map) {
+      final vat = json['visual_audit_trail'];
+      pickupPhoto = vat['pickup_counter_photo'] as String?;
+      deliveryPhoto = vat['doorstep_delivery_photo'] as String?;
+      attemptPhoto = vat['delivery_attempt_photo'] as String?;
+      attemptReason = vat['delivery_failure_reason'] as String?;
+      if (vat['item_rejection_photos'] is List) {
+        rejectionPhotos = (vat['item_rejection_photos'] as List).map((e) => e.toString()).toList();
+      }
+    } else {
+      pickupPhoto = json['pickup_proof_image'] as String?;
+      deliveryPhoto = json['proof_of_delivery_image'] as String?;
+      attemptPhoto = json['delivery_attempt_photo_path'] as String?;
+      attemptReason = json['delivery_failure_reason'] as String?;
+    }
+
     return OrderModel(
       id: json['id'] as int,
       orderNumber: json['order_number'] as String? ?? 'ORD-000',
       fulfillmentType: json['fulfillment_type'] as String? ?? 'doorstep_delivery',
-      orderStatus: json['order_status'] as String? ?? 'confirmed',
+      orderStatus: status,
       paymentStatus: json['payment_status'] as String? ?? 'pending',
       merchandiseSubtotal: json['merchandise_subtotal']?.toString() ?? '0.00',
       deliveryFee: json['delivery_fee']?.toString() ?? '0.00',
       cashbackRedeemed: json['cashback_redeemed']?.toString() ?? '0.00',
+      walletCreditApplied: json['wallet_credit_applied']?.toString() ?? '0.00',
       grandTotal: json['grand_total']?.toString() ?? '0.00',
       customerCashback5: json['customer_cashback_5']?.toString() ?? '0.00',
-      verificationCode: json['verification_code'] as String?,
+      verificationCode: (json['delivery_otp'] ?? json['verification_code']) as String?,
       shopName: json['shop'] != null ? json['shop']['name'] : 'Merchant Shop',
       shopAddress: json['shop'] != null ? json['shop']['address'] : null,
       shopPhone: json['shop'] != null ? json['shop']['phone'] : null,
@@ -122,6 +180,13 @@ class OrderModel {
       items: parsedItems,
       createdAt: json['created_at'] as String? ?? '',
       riderArrivedAt: json['rider_arrived_at'] as String?,
+      hasRiderArrived: arrived,
+      isHandshakePending: json['is_handshake_pending'] == true || (status == 'out_for_delivery' && arrived),
+      pickupCounterPhoto: pickupPhoto,
+      doorstepDeliveryPhoto: deliveryPhoto,
+      deliveryAttemptPhoto: attemptPhoto,
+      deliveryFailureReason: attemptReason,
+      itemRejectionPhotos: rejectionPhotos,
     );
   }
 
@@ -133,7 +198,7 @@ class OrderModel {
   bool get isDoorstepDelivery => fulfillmentType == 'doorstep_delivery';
   bool get isDelivered => orderStatus == 'delivered' || orderStatus == 'completed';
   bool get isOutForDelivery => orderStatus == 'out_for_delivery';
-  bool get riderArrived => riderArrivedAt != null;
+  bool get riderArrived => hasRiderArrived || riderArrivedAt != null;
 
   int get statusStepIndex {
     switch (orderStatus.toLowerCase()) {

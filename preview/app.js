@@ -28,32 +28,76 @@ let state = {
   activeCategorySlug: null,
   fulfillmentType: 'doorstep_delivery',
   redeemCashback: false,
+  redeemWalletCredit: false,
+  walletCreditAvailable: 320000,
   activeOrder: {
-    orderNumber: 'ORD-20261015-8192',
-    otp: '491820',
+    orderNumber: 'VM-ORD-9081',
+    otp: '883921',
+    courierPickupOtp: '482910',
+    riderArrived: false,
     statusStep: 3,
     statusText: 'OUT FOR DELIVERY',
+    pickupCounterPhoto: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=400&q=80',
+    doorstepDeliveryPhoto: null,
+    deliveryAttemptPhoto: null,
+    deliveryFailureReason: null,
+    walletCreditApplied: '0.00',
     items: [
-      { name: 'Samsung Galaxy A54 5G 128GB', qty: 1, price: '₦320,000.00' }
+      {
+        name: 'Samsung Galaxy A54 5G 128GB Awesome Violet',
+        qty: 1,
+        price: '₦320,000.00',
+        acceptedQty: 1,
+        rejectedQty: 0,
+        rejectionCategory: null,
+        defectPhoto: null
+      }
     ],
     subtotal: '₦320,000.00',
     deliveryFee: '₦500.00',
     total: '₦320,500.00',
     cashbackEarned: '₦16,000.00',
-    courierName: 'Emeka Okon',
+    courierName: 'Emeka Okon (Rider Dispatch)',
     courierPhone: '+2348039120491',
-    courierVehicle: 'Motorcycle (UYO-123-AK)',
+    courierVehicle: 'TVS HLX Plus (UYO-123-AK)',
     shopName: 'MegaTech Uyo Plaza',
-    shopAddress: '10 Aka Road, Uyo'
+    shopAddress: '10 Aka Road, Uyo Plaza'
   },
   activeReservation: {
-    code: 'RES-89A4B12C',
-    productName: 'iPhone 13 Pro Max 256GB Gold',
+    code: 'RES-884291',
+    productName: 'Samsung Galaxy A54 5G 128GB Awesome Violet',
     qty: 1,
-    total: '₦680,000.00',
-    shopName: 'Victorious Flagship Gadgets',
-    shopAddress: 'Plot 4, Shelter Afrique Estate, Uyo',
-    expiresIn: '23h 48m'
+    total: '₦320,000.00',
+    shopName: 'MegaTech Uyo Plaza',
+    shopAddress: '10 Aka Road, Uyo Plaza',
+    expiresIn: '23h 59m'
+  },
+  returnCases: [
+    {
+      caseNumber: 'RET-20261016-0001',
+      orderNumber: 'VM-ORD-9081',
+      status: 'opened',
+      statusLabel: 'Under Review',
+      reason: 'defective_product',
+      reasonLabel: 'Defective / Not Working',
+      amount: '₦320,000.00',
+      description: 'Screen does not turn on even after charging for 2 hours.',
+      vendorOtp: '782901',
+      date: 'Today, 12:15 PM'
+    }
+  ],
+  walletCredits: {
+    available: '₦320,000.00',
+    history: [
+      {
+        id: 1,
+        type: 'Doorstep Rejection Refund',
+        amount: '₦320,000.00',
+        status: 'AVAILABLE',
+        notes: 'Doorstep parcel refusal refund for order VM-ORD-9081',
+        date: 'Today, 12:30 PM'
+      }
+    ]
   }
 };
 
@@ -65,6 +109,7 @@ const SEED_PRODUCTS = [
     unit_price: '320000.00',
     is_vmarket_flagship: true,
     pickup_enabled: true,
+    youtube_video_id: 'eWpT35yFv4c',
     shop: { name: 'MegaTech Uyo Plaza', lga_id: 69 },
     thumbnail: 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?auto=format&fit=crop&w=400&q=80',
     description: 'Verified brand new flagship smartphone with official warranty in Akwa Ibom State.'
@@ -221,7 +266,7 @@ async function initBackendData() {
 }
 
 // Navigation Router
-function switchTab(tabId) {
+function switchTab(tabId, extra) {
   state.currentTab = tabId;
 
   // Update views
@@ -235,15 +280,21 @@ function switchTab(tabId) {
   if (activeNavItem) activeNavItem.classList.add('active');
 
   // Update studio pills
-  document.querySelectorAll('.nav-pill-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.nav-pill-btn').forEach(btn => {
+    btn.classList.remove('active');
+    const oc = btn.getAttribute('onclick') || '';
+    if (oc.includes(`'${tabId}'`)) btn.classList.add('active');
+  });
   
   // Viewport scroll to top
-  document.getElementById('viewport').scrollTop = 0;
+  const vp = document.getElementById('viewport');
+  if (vp) vp.scrollTop = 0;
 
   if (tabId === 'cart') renderCart();
   if (tabId === 'checkout') renderCheckout();
   if (tabId === 'orders') renderOrders();
   if (tabId === 'explore') renderExplore();
+  if (tabId === 'returns') renderReturns(extra);
 }
 
 function enterMarketplace() {
@@ -389,6 +440,33 @@ function openProductDetails(id) {
         <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">${product.description || 'Verified authentic merchandise certified under Victorious MARKET sovereign compliance guidelines.'}</p>
       </div>
 
+      ${product.youtube_video_id ? `
+        <!-- Verified Product Demonstration Video (Zero-Trust YouTube Stream) -->
+        <div style="border-top: 1px solid var(--border-light); padding-top: 14px; margin-top: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div style="font-size: 13px; font-weight: 800; color: #0F172A; display: flex; align-items: center; gap: 6px;">
+              <i class="fa-brands fa-youtube" style="color: #EF4444; font-size: 18px;"></i> Verified Demonstration Video
+            </div>
+            <span style="background: #FEE2E2; color: #DC2626; font-size: 9.5px; font-weight: 900; padding: 2px 8px; border-radius: 6px;">
+              YouTube HD
+            </span>
+          </div>
+          <div style="border-radius: 12px; overflow: hidden; position: relative; padding-top: 56.25%; background: #000; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <iframe 
+              style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+              src="https://www.youtube-nocookie.com/embed/${product.youtube_video_id}?rel=0" 
+              title="${product.name} Video Review"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              sandbox="allow-scripts allow-same-origin allow-presentation"
+              allowfullscreen>
+            </iframe>
+          </div>
+          <div style="font-size: 10.5px; color: #64748B; margin-top: 6px; display: flex; align-items: center; gap: 4px;">
+            <i class="fa-solid fa-shield-halved" style="color: var(--primary-purple);"></i> Zero-Trust Stream: No server-side HTTP calls. Sandboxed Google CDN.
+          </div>
+        </div>
+      ` : ''}
+
       <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 10px;">
         <button class="btn-primary" onclick="addToCart(${product.id}); switchTab('cart')">
           <i class="fa-solid fa-bag-shopping"></i> Add to Bag & Buy Now
@@ -407,6 +485,16 @@ function openProductDetails(id) {
 function addToCart(productId) {
   const product = state.products.find(p => p.id === productId);
   if (!product) return;
+
+  if (state.cart.length > 0 && product.shop && state.cart[0].product.shop) {
+    if (state.cart[0].product.shop.name !== product.shop.name) {
+      const confirmClear = confirm(
+        `Single-Store Checkout: Your bag currently contains items from ${state.cart[0].product.shop.name}. Would you like to clear your bag and start a new order from ${product.shop.name}?`
+      );
+      if (!confirmClear) return;
+      state.cart = [];
+    }
+  }
 
   const existing = state.cart.find(i => i.product.id === productId);
   if (existing) {
@@ -518,7 +606,9 @@ function renderCheckout() {
   const subtotal = getCartSubtotal() || 320000;
   const deliveryFee = state.fulfillmentType === 'doorstep_delivery' ? 500 : 0;
   const cashbackDiscount = state.redeemCashback ? 2500 : 0;
-  const total = subtotal + deliveryFee - cashbackDiscount;
+  const grossTotal = Math.max(0, subtotal + deliveryFee - cashbackDiscount);
+  const walletCreditDeduction = state.redeemWalletCredit ? Math.min(grossTotal, state.walletCreditAvailable) : 0;
+  const netPayable = Math.max(0, grossTotal - walletCreditDeduction);
 
   container.innerHTML = `
     <!-- Mode Switcher -->
@@ -564,11 +654,20 @@ function renderCheckout() {
       </div>
     `}
 
+    <!-- Spendable Wallet Credit 100% Toggle -->
+    <div style="background: #F0FDF4; border-radius: 14px; padding: 12px 16px; border: 1.5px solid #22C55E; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+      <div>
+        <div style="font-size: 13px; font-weight: 800; color: #166534;"><i class="fa-solid fa-wallet"></i> Apply Spendable Wallet Credit (100%)</div>
+        <div style="font-size: 11px; color: #15803D;">Available balance: ${formatNaira(state.walletCreditAvailable)}</div>
+      </div>
+      <input type="checkbox" style="width: 20px; height: 20px; accent-color: #16A34A; cursor: pointer;" ${state.redeemWalletCredit ? 'checked' : ''} onchange="toggleWalletCredit(this.checked)">
+    </div>
+
     <!-- Cashback Toggle -->
     <div style="background: white; border-radius: 14px; padding: 12px 16px; border: 1.5px solid var(--secondary-gold); display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
       <div>
         <div style="font-size: 13px; font-weight: 800;"><i class="fa-solid fa-stars" style="color: var(--gold-dark);"></i> Redeem Sovereign Cashback</div>
-        <div style="font-size: 11px; color: var(--text-secondary);">Apply available ₦2,500.00 discount</div>
+        <div style="font-size: 11px; color: var(--text-secondary);">Apply available ₦2,500.00 reward discount</div>
       </div>
       <input type="checkbox" style="width: 20px; height: 20px; accent-color: var(--primary-purple); cursor: pointer;" ${state.redeemCashback ? 'checked' : ''} onchange="toggleCashback(this.checked)">
     </div>
@@ -589,14 +688,24 @@ function renderCheckout() {
           <span style="color: var(--success); font-weight: 700;">-₦2,500.00</span>
         </div>
       ` : ''}
+      ${state.redeemWalletCredit && walletCreditDeduction > 0 ? `
+        <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
+          <span style="color: #16A34A; font-weight: 700;">Wallet Credit Applied:</span>
+          <span style="color: #16A34A; font-weight: 700;">-${formatNaira(walletCreditDeduction)}</span>
+        </div>
+      ` : ''}
       <div style="border-top: 1px solid var(--border-light); padding-top: 10px; margin-top: 10px; display: flex; justify-content: space-between;">
-        <span style="font-size: 16px; font-weight: 900;">Grand Total:</span>
-        <span style="font-size: 19px; font-weight: 900; color: var(--primary-purple);">${formatNaira(total)}</span>
+        <span style="font-size: 16px; font-weight: 900;">Payable Now:</span>
+        <span style="font-size: 19px; font-weight: 900; color: ${netPayable === 0 ? '#16A34A' : 'var(--primary-purple)'};">${formatNaira(netPayable)}</span>
       </div>
     </div>
 
-    <button class="btn-primary" onclick="confirmPaymentAndTrack()">
-      <i class="fa-solid fa-lock"></i> ${state.fulfillmentType === 'doorstep_delivery' ? 'Pay with Paystack' : 'Confirm In-Shop Reservation'}
+    <button class="btn-primary" style="${netPayable === 0 ? 'background: #16A34A;' : ''}" onclick="confirmPaymentAndTrack(${netPayable === 0})">
+      <i class="fa-solid fa-lock"></i> ${
+        state.fulfillmentType === 'in_shop_pickup'
+          ? 'Confirm In-Shop Reservation'
+          : (netPayable === 0 ? 'Instant 100% Wallet Settlement (₦0.00)' : 'Pay with Paystack (' + formatNaira(netPayable) + ')')
+      }
     </button>
   `;
 }
@@ -611,9 +720,19 @@ function toggleCashback(checked) {
   renderCheckout();
 }
 
-function confirmPaymentAndTrack() {
+function toggleWalletCredit(checked) {
+  state.redeemWalletCredit = checked;
+  renderCheckout();
+}
+
+function confirmPaymentAndTrack(isWalletSettled) {
   clearCart();
-  alert('Payment verified via Paystack! Order created with live delivery tracking and Secret 6-Digit Delivery PIN.');
+  if (isWalletSettled) {
+    state.activeOrder.walletCreditApplied = state.activeOrder.total;
+    alert('Instant 100% Wallet Settlement Complete!\nNo card charges incurred. Your order is locked with doorstep OTP custody.');
+  } else {
+    alert('Payment verified via Paystack! Order created with live delivery tracking and Secret 6-Digit Delivery PIN.');
+  }
   switchTab('orders');
 }
 
@@ -675,25 +794,99 @@ function renderOrders() {
   const container = document.getElementById('orders-content-area');
   const o = state.activeOrder;
 
+  const isDelivered = o.statusStep >= 4;
+  const riderArrived = o.riderArrived && !isDelivered;
+
   container.innerHTML = `
-    <!-- Secret 6-Digit Delivery PIN Card -->
-    <div class="otp-gold-card">
-      <div class="otp-title"><i class="fa-solid fa-shield-halved"></i> SECRET 6-DIGIT DELIVERY PIN</div>
-      <div class="otp-digits-box" onclick="copyOtp('${o.otp}')">
-        <span class="otp-number">${o.otp}</span>
-        <i class="fa-solid fa-copy" style="color: var(--text-secondary);"></i>
+    <!-- Top Action / State Card -->
+    ${riderArrived ? `
+      <!-- Doorstep Arrival Code Entry Card (Active when Courier is outside) -->
+      <div style="background: var(--purple-gradient); border-radius: 20px; padding: 22px; color: white; margin-bottom: 20px; box-shadow: 0 10px 25px rgba(94, 23, 235, 0.4); border: 2px solid var(--secondary-gold);">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+          <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--secondary-gold); display: flex; align-items: center; justify-content: center; color: #1a1a1a; font-size: 18px;">
+            <i class="fa-solid fa-bell"></i>
+          </div>
+          <div>
+            <div style="font-size: 11px; font-weight: 900; letter-spacing: 1.2px; color: var(--secondary-gold);">COURIER HAS ARRIVED!</div>
+            <div style="font-size: 15px; font-weight: 800;">${o.courierName} is at your doorstep</div>
+          </div>
+        </div>
+
+        <p style="font-size: 12px; color: rgba(255,255,255,0.85); line-height: 1.4; margin-bottom: 14px;">
+          Physically inspect your parcel and security seal first. Once satisfied, enter the 6-digit Delivery Code received via SMS/WhatsApp below to confirm receipt:
+        </p>
+
+        <!-- 6-Digit Code Input Field -->
+        <div style="background: white; border-radius: 14px; padding: 6px; display: flex; align-items: center; margin-bottom: 12px; border: 2px solid var(--secondary-gold);">
+          <input id="doorstep-otp-input" type="text" maxlength="6" placeholder="Enter 6-Digit Code" style="flex: 1; border: none; outline: none; font-size: 24px; font-weight: 900; letter-spacing: 8px; text-align: center; color: var(--primary-purple); padding: 8px;">
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <span style="font-size: 11px; color: rgba(255,255,255,0.7);">Code received via SMS/WhatsApp</span>
+          <button style="background: rgba(255,255,255,0.2); border: 1px solid var(--secondary-gold); color: var(--secondary-gold); border-radius: 20px; padding: 4px 12px; font-size: 11px; font-weight: 800; cursor: pointer;" onclick="autofillDoorstepOtp('${o.otp}')">
+            <i class="fa-solid fa-bolt"></i> Auto-Fill (${o.otp})
+          </button>
+        </div>
+
+        <button class="btn-primary" style="background: var(--success); width: 100%; font-size: 14px; font-weight: 800;" onclick="submitDoorstepOtp()">
+          <i class="fa-solid fa-circle-check"></i> Confirm Delivery & Release Custody
+        </button>
+
+        <div style="margin-top: 12px; text-align: center;">
+          <button style="background: none; border: none; color: #FCA5A5; font-size: 11px; font-weight: 800; text-decoration: underline; cursor: pointer;" onclick="showDoorstepRejectionGuide()">
+            <i class="fa-solid fa-triangle-exclamation"></i> Wrong Item or Damaged? Reject Delivery Protocol
+          </button>
+        </div>
       </div>
-      <div class="otp-rule-box">
-        <i class="fa-solid fa-triangle-exclamation"></i> Give this PIN to the courier ONLY AFTER physically inspecting your package at your doorstep.
+    ` : isDelivered ? `
+      <!-- Delivery Completed Celebration Card -->
+      <div style="background: var(--success-light); border-radius: 20px; padding: 20px; border: 1.5px solid var(--success); margin-bottom: 20px; text-align: center;">
+        <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--success); color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 10px;">
+          <i class="fa-solid fa-check"></i>
+        </div>
+        <h3 style="font-size: 17px; font-weight: 900; color: #1a1a1a; margin-bottom: 4px;">Delivery Completed & Verified</h3>
+        <p style="font-size: 13px; font-weight: 800; color: var(--success); margin-bottom: 14px;">
+          +${o.cashbackEarned} Sovereign Cashback Credited to Rewards Wallet
+        </p>
+        <button class="btn-secondary" style="border-color: var(--primary-purple); color: var(--primary-purple); font-weight: 800; padding: 8px 16px; border-radius: 10px;" onclick="switchTab('wallet')">
+          <i class="fa-solid fa-wallet"></i> View Sovereign Cashback Balance
+        </button>
+
+        <div style="margin-top: 14px; padding: 12px; background: white; border-radius: 12px; border: 1px solid #E2E8F0; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <div style="text-align: left;">
+            <div style="font-size: 11px; font-weight: 800; color: #1E293B;"><i class="fa-solid fa-shield-halved" style="color: var(--primary-purple);"></i> 24h Return Window Active</div>
+            <div style="font-size: 10px; color: #64748B;">Item defective or wrong? Open a return claim before funds unlock to vendor.</div>
+          </div>
+          <button style="background: #FEE2E2; color: #DC2626; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; white-space: nowrap;" onclick="switchTab('returns', { tab: 'form', orderNumber: '${o.orderNumber}' })">
+            Request Return
+          </button>
+        </div>
       </div>
-    </div>
+    ` : `
+      <!-- Standard Secret 6-Digit Delivery PIN Card -->
+      <div class="otp-gold-card">
+        <div class="otp-title"><i class="fa-solid fa-shield-halved"></i> SECRET 6-DIGIT DELIVERY PIN</div>
+        <div class="otp-digits-box" onclick="copyOtp('${o.otp}')">
+          <span class="otp-number">${o.otp}</span>
+          <i class="fa-solid fa-copy" style="color: var(--text-secondary);"></i>
+        </div>
+        <div class="otp-rule-box">
+          <i class="fa-solid fa-triangle-exclamation"></i> When courier presses "I'm Here" at your doorstep, an input box will activate on this screen to finalize custody.
+        </div>
+      </div>
+
+      <!-- Simulation Button for Live Handshake Demo -->
+      <button style="width: 100%; border: 1.5px dashed var(--secondary-gold); background: #FFFBEB; border-radius: 14px; padding: 12px; margin-bottom: 20px; font-size: 13px; font-weight: 800; color: #B45309; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="simulateRiderArrival()">
+        <i class="fa-solid fa-location-dot"></i> Simulate Courier "I'm Here" Doorstep Arrival
+      </button>
+    `}
 
     <!-- 5-Stage Live Progress Stepper -->
     <div class="stepper-wrap">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
         <span style="font-size: 13px; font-weight: 800;">Order: ${o.orderNumber}</span>
-        <span style="background: rgba(94, 23, 235, 0.1); color: var(--primary-purple); font-size: 9px; font-weight: 900; padding: 2px 8px; border-radius: 10px;">
-          ${o.statusText}
+        <span style="background: ${isDelivered ? 'var(--success-light)' : riderArrived ? 'var(--gold-light)' : 'rgba(94, 23, 235, 0.1)'}; color: ${isDelivered ? 'var(--success)' : riderArrived ? 'var(--gold-dark)' : 'var(--primary-purple)'}; font-size: 9.5px; font-weight: 900; padding: 3px 9px; border-radius: 10px;">
+          ${isDelivered ? 'DELIVERED & VERIFIED' : riderArrived ? 'COURIER AT DOORSTEP' : o.statusText}
         </span>
       </div>
 
@@ -732,22 +925,72 @@ function renderOrders() {
 
       <div class="step-row">
         <div class="step-marker-col">
-          <div class="step-circle active">4</div>
-          <div class="step-line"></div>
+          <div class="step-circle ${isDelivered ? 'done' : 'active'}">${isDelivered ? '<i class="fa-solid fa-check"></i>' : '4'}</div>
+          <div class="step-line ${isDelivered ? 'done' : ''}"></div>
         </div>
         <div class="step-info">
-          <h5 style="color: var(--primary-purple);">Out for Delivery</h5>
-          <p>Courier in transit to your doorstep</p>
+          <h5 style="color: ${isDelivered ? 'var(--text-primary)' : 'var(--primary-purple)'};">${riderArrived ? 'Courier Arrived at Doorstep' : 'Out for Delivery'}</h5>
+          <p>${riderArrived ? 'Rider waiting outside • Enter PIN below' : 'Courier in transit to your destination'}</p>
         </div>
       </div>
 
       <div class="step-row">
         <div class="step-marker-col">
-          <div class="step-circle">5</div>
+          <div class="step-circle ${isDelivered ? 'done' : ''}">${isDelivered ? '<i class="fa-solid fa-check"></i>' : '5'}</div>
         </div>
         <div class="step-info">
-          <h5>Delivered</h5>
+          <h5 style="color: ${isDelivered ? 'var(--success)' : 'inherit'};">Delivered</h5>
           <p>Custody finalized upon PIN entry</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delivery Attempt Warning Card (If rider recorded failed attempt) -->
+    ${o.deliveryAttemptPhoto ? `
+      <div style="background: #FFFBEB; border: 1.5px solid #F59E0B; border-radius: 16px; padding: 16px; margin-bottom: 16px;">
+        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
+          <i class="fa-solid fa-triangle-exclamation" style="color: #D97706; font-size: 22px;"></i>
+          <div>
+            <div style="font-size: 13px; font-weight: 800; color: #92400E;">Delivery Attempt Notice (${o.deliveryFailureReason || 'Gate Locked / Customer Unreachable'})</div>
+            <div style="font-size: 11px; color: #B45309;">Courier was unable to reach you at the address. Live photo proof attached:</div>
+          </div>
+        </div>
+        <img src="${o.deliveryAttemptPhoto}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; border: 1px solid #FCD34D;">
+        <div style="display: flex; gap: 8px;">
+          <button class="btn-primary" style="flex: 1; background: #D97706; font-size: 12px; padding: 9px;" onclick="alert('Calling courier: ' + state.activeOrder.courierPhone)">
+            <i class="fa-solid fa-phone"></i> Call Courier Now
+          </button>
+          <button style="border: 1px solid #D97706; background: transparent; color: #92400E; border-radius: 10px; padding: 8px 12px; font-size: 11px; font-weight: 800; cursor: pointer;" onclick="clearAttemptNotice()">
+            Dismiss
+          </button>
+        </div>
+      </div>
+    ` : ''}
+
+    <!-- Immutable Visual Audit Trail Card -->
+    <div style="background: white; border-radius: 16px; padding: 16px; border: 1px solid var(--border-light); margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+        <i class="fa-solid fa-camera-retro" style="color: var(--primary-purple); font-size: 18px;"></i>
+        <div>
+          <div style="font-size: 13px; font-weight: 800; color: #0F172A;">Verified Visual Audit Trail</div>
+          <div style="font-size: 10.5px; color: #64748B;">Live camera snapshots certified on immutable ledger</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div>
+          <div style="font-size: 10.5px; font-weight: 800; color: #475569; margin-bottom: 4px;">Counter Pickup Proof</div>
+          <img src="${o.pickupCounterPhoto}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 10px; border: 1px solid #E2E8F0;" alt="Counter Pickup">
+        </div>
+        <div>
+          <div style="font-size: 10.5px; font-weight: 800; color: #475569; margin-bottom: 4px;">Doorstep Custody</div>
+          ${isDelivered ? `
+            <img src="${o.doorstepDeliveryPhoto || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=400&q=80'}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 10px; border: 1px solid #E2E8F0;" alt="Doorstep Delivery">
+          ` : `
+            <div style="width: 100%; height: 100px; border-radius: 10px; border: 1.5px dashed #CBD5E1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94A3B8; font-size: 10px; text-align: center; padding: 6px;">
+              <i class="fa-solid fa-hourglass-half" style="font-size: 16px; margin-bottom: 4px;"></i>
+              Pending Handover
+            </div>
+          `}
         </div>
       </div>
     </div>
@@ -768,10 +1011,20 @@ function renderOrders() {
       </button>
     </div>
 
-    <!-- Doorstep Confirmation Button -->
-    <button class="btn-primary" style="background: var(--success);" onclick="confirmCustomerReceipt()">
-      <i class="fa-solid fa-circle-check"></i> Customer Confirm Parcel Received
-    </button>
+    <!-- Interactive Simulator Controls -->
+    <div style="background: #F8FAFC; border-radius: 14px; padding: 12px; border: 1px dashed #CBD5E1; margin-bottom: 20px;">
+      <div style="font-size: 11px; font-weight: 800; color: #64748B; margin-bottom: 8px; text-transform: uppercase;">
+        <i class="fa-solid fa-flask"></i> Protocol Handshake Simulations
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <button style="border: 1px solid var(--secondary-gold); background: #FFFBEB; border-radius: 8px; padding: 8px; font-size: 11px; font-weight: 800; color: #B45309; cursor: pointer;" onclick="simulateRiderArrival()">
+          Simulate "I'm Here"
+        </button>
+        <button style="border: 1px solid #F59E0B; background: #FEF3C7; border-radius: 8px; padding: 8px; font-size: 11px; font-weight: 800; color: #92400E; cursor: pointer;" onclick="simulateLockedGate()">
+          Simulate Locked Gate
+        </button>
+      </div>
+    </div>
   `;
 }
 
@@ -780,11 +1033,100 @@ function copyOtp(pin) {
   alert('Secret 6-Digit Delivery PIN copied: ' + pin);
 }
 
-function confirmCustomerReceipt() {
+function simulateRiderArrival() {
+  state.activeOrder.riderArrived = true;
+  renderOrders();
+  setTimeout(() => {
+    const input = document.getElementById('doorstep-otp-input');
+    if (input) {
+      input.focus();
+      input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 100);
+}
+
+function autofillDoorstepOtp(otp) {
+  const input = document.getElementById('doorstep-otp-input');
+  if (input) input.value = otp;
+}
+
+function submitDoorstepOtp() {
+  const input = document.getElementById('doorstep-otp-input');
+  const enteredOtp = input ? input.value.trim() : '';
+
+  if (enteredOtp.length !== 6) {
+    alert('Please enter a valid 6-digit numeric Delivery Code.');
+    return;
+  }
+
+  if (enteredOtp !== state.activeOrder.otp) {
+    alert('Verification code invalid! Please enter the 6-digit Delivery PIN you received via SMS/WhatsApp (' + state.activeOrder.otp + ').');
+    return;
+  }
+
   state.activeOrder.statusStep = 4;
   state.activeOrder.statusText = 'DELIVERED';
-  alert('Delivery custody confirmed! 5% cashback has been credited to your sovereign rewards wallet.');
+  state.activeOrder.doorstepDeliveryPhoto = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=400&q=80';
+  state.activeOrder.riderArrived = false;
+  alert('Delivery custody confirmed! Escrow released and +16,000.00 Cashback credited to your Sovereign Rewards Wallet.');
   renderOrders();
+}
+
+function simulateLockedGate() {
+  state.activeOrder.deliveryAttemptPhoto = 'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?auto=format&fit=crop&w=500&q=80';
+  state.activeOrder.deliveryFailureReason = 'gate_locked';
+  state.activeOrder.statusText = 'DELIVERY ATTEMPT FAILED (LOCKED GATE)';
+  state.activeOrder.riderArrived = false;
+  alert('Rider recorded failed delivery attempt!\nReason: Gate Locked / Customer Unreachable.\nLive photo proof has been logged to your tracking screen.');
+  renderOrders();
+}
+
+function clearAttemptNotice() {
+  state.activeOrder.deliveryAttemptPhoto = null;
+  state.activeOrder.deliveryFailureReason = null;
+  renderOrders();
+}
+
+function reorderReplacement(orderNumber) {
+  const newOrderNum = 'VM-ORD-' + Math.floor(1000 + Math.random() * 9000);
+  const newOtp = String(Math.floor(100000 + Math.random() * 900000));
+
+  state.activeOrder = {
+    orderNumber: newOrderNum,
+    otp: newOtp,
+    courierPickupOtp: '519283',
+    riderArrived: false,
+    statusStep: 1,
+    statusText: 'PROCESSING REPLACEMENT',
+    pickupCounterPhoto: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=400&q=80',
+    doorstepDeliveryPhoto: null,
+    deliveryAttemptPhoto: null,
+    deliveryFailureReason: null,
+    walletCreditApplied: '320,000.00',
+    items: [
+      {
+        name: 'Samsung Galaxy A54 5G 128GB Awesome Violet (Replacement)',
+        qty: 1,
+        price: '₦320,000.00',
+        acceptedQty: 1,
+        rejectedQty: 0,
+        rejectionCategory: null,
+        defectPhoto: null
+      }
+    ],
+    subtotal: '₦320,000.00',
+    deliveryFee: '₦500.00',
+    total: '₦320,500.00',
+    cashbackEarned: '₦16,000.00',
+    courierName: 'Emeka Okon (Rider Dispatch)',
+    courierPhone: '+2348039120491',
+    courierVehicle: 'TVS HLX Plus (UYO-123-AK)',
+    shopName: 'MegaTech Uyo Plaza',
+    shopAddress: '10 Aka Road, Uyo Plaza'
+  };
+
+  alert(`Replacement Order Dispatched!\nOrder Number: ${newOrderNum}\nPaid seamlessly with your Wallet Credit refund. Live tracking initialized.`);
+  switchTab('orders');
 }
 
 // Explore Screen Rendering
@@ -1117,4 +1459,155 @@ function openShopProfile(shopId) {
   `;
 
   switchTab('shop');
+}
+
+// Returns & Claims Screen Renderer
+function renderReturns(extra) {
+  const container = document.getElementById('returns-content-area');
+  if (!container) return;
+
+  const activeSubTab = (extra && extra.tab) ? extra.tab : 'cases';
+  const prefilledOrder = (extra && extra.orderNumber) ? extra.orderNumber : state.activeOrder.orderNumber;
+
+  container.innerHTML = `
+    <!-- Top Sub-Tabs -->
+    <div style="display: flex; background: #E2E8F0; padding: 3px; border-radius: 12px; margin-bottom: 16px;">
+      <button style="flex: 1; padding: 8px; border: none; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.2s; background: ${activeSubTab === 'cases' ? 'white' : 'transparent'}; color: ${activeSubTab === 'cases' ? 'var(--primary-purple)' : '#64748B'}; box-shadow: ${activeSubTab === 'cases' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none'};" onclick="renderReturns({ tab: 'cases' })">
+        <i class="fa-solid fa-list-check"></i> Return Cases (${state.returnCases.length})
+      </button>
+      <button style="flex: 1; padding: 8px; border: none; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.2s; background: ${activeSubTab === 'form' ? 'white' : 'transparent'}; color: ${activeSubTab === 'form' ? 'var(--primary-purple)' : '#64748B'}; box-shadow: ${activeSubTab === 'form' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none'};" onclick="renderReturns({ tab: 'form', orderNumber: '${prefilledOrder}' })">
+        <i class="fa-solid fa-triangle-exclamation"></i> File a Claim
+      </button>
+    </div>
+
+    ${activeSubTab === 'cases' ? `
+      <!-- TAB 1: CASES LIST -->
+      ${state.returnCases.length === 0 ? `
+        <div style="text-align: center; padding: 40px 20px; color: #64748B;">
+          <i class="fa-solid fa-shield-cat" style="font-size: 48px; color: #CBD5E1; margin-bottom: 12px;"></i>
+          <h4 style="font-size: 15px; font-weight: 800; color: #1E293B; margin-bottom: 4px;">No Active Return Disputes</h4>
+          <p style="font-size: 12px; line-height: 1.4;">All your delivered orders are in good standing under 24h sovereign protection.</p>
+        </div>
+      ` : `
+        <div>
+          ${state.returnCases.map(c => `
+            <div style="background: white; border-radius: 16px; padding: 16px; border: 1px solid var(--border-light); margin-bottom: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 14px; font-weight: 900; color: #0F172A;">${c.caseNumber}</span>
+                <span style="background: ${c.status === 'refunded' ? 'var(--success-light)' : 'rgba(94, 23, 235, 0.1)'}; color: ${c.status === 'refunded' ? 'var(--success)' : 'var(--primary-purple)'}; font-size: 10px; font-weight: 900; padding: 3px 8px; border-radius: 8px; text-transform: uppercase;">
+                  ${c.statusLabel}
+                </span>
+              </div>
+              <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">
+                Order Ref: <strong style="color: #0F172A;">${c.orderNumber}</strong> • Reason: <strong style="color: #0F172A;">${c.reasonLabel}</strong>
+              </div>
+              <div style="font-size: 12px; color: #475569; background: #F8FAFC; padding: 10px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid var(--primary-purple);">
+                "${c.description}"
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #F1F5F9; padding-top: 10px; margin-bottom: 10px;">
+                <div>
+                  <div style="font-size: 10px; color: #64748B; font-weight: 700;">REFUNDABLE ESCROW:</div>
+                  <div style="font-size: 15px; font-weight: 900; color: var(--primary-purple);">${c.amount}</div>
+                </div>
+                ${c.vendorOtp ? `
+                  <div style="text-align: right;">
+                    <div style="font-size: 10px; color: #64748B; font-weight: 700;">VENDOR RETURN OTP:</div>
+                    <div style="font-size: 14px; font-weight: 900; color: #0F766E; font-family: monospace; letter-spacing: 2px;">${c.vendorOtp}</div>
+                  </div>
+                ` : ''}
+              </div>
+
+              <!-- 1-Click Replacement Reorder Option -->
+              <button style="width: 100%; background: #EFF6FF; border: 1.2px solid #3B82F6; color: #1D4ED8; border-radius: 10px; padding: 8px 12px; font-size: 11.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="reorderReplacement('${c.orderNumber}')">
+                <i class="fa-solid fa-arrows-rotate"></i> 1-Click Reorder Replacement Unit
+              </button>
+            </div>
+          `).join('')}
+        </div>
+      `}
+    ` : `
+      <!-- TAB 2: FILE DISPUTE FORM -->
+      <div style="background: white; border-radius: 16px; padding: 18px; border: 1px solid var(--border-light);">
+        <!-- Guarantee Banner -->
+        <div style="background: #FEF3C7; border: 1px solid #FDE68A; border-radius: 10px; padding: 12px; display: flex; gap: 10px; margin-bottom: 16px;">
+          <i class="fa-solid fa-shield-halved" style="color: #D97706; font-size: 18px; margin-top: 2px;"></i>
+          <div style="font-size: 11.5px; color: #92400E; line-height: 1.4;">
+            <strong>24-Hour Sovereign Return Guarantee:</strong> Customer funds remain locked in platform escrow until goods are fully verified or returned.
+          </div>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 11px; font-weight: 800; color: #64748B; margin-bottom: 6px; text-transform: uppercase;">Delivered Order Number</label>
+          <input type="text" id="dispute-order-input" value="${prefilledOrder}" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid #CBD5E1; font-size: 13px; font-weight: 700; outline: none; background: #F8FAFC;">
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 11px; font-weight: 800; color: #64748B; margin-bottom: 6px; text-transform: uppercase;">Primary Reason for Return</label>
+          <select id="dispute-reason-select" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid #CBD5E1; font-size: 12.5px; font-weight: 700; outline: none; background: #F8FAFC;">
+            <option value="defective_product">Defective / Not Working</option>
+            <option value="wrong_item_sent">Wrong Item Delivered</option>
+            <option value="misdescribed_counterfeit">Counterfeit / Misdescribed</option>
+            <option value="damaged_in_transit">Damaged in Transit</option>
+            <option value="missing_item">Missing Item / Parts from Box</option>
+            <option value="change_of_mind">Change of Mind (Original Seal Intact)</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 18px;">
+          <label style="display: block; font-size: 11px; font-weight: 800; color: #64748B; margin-bottom: 6px; text-transform: uppercase;">Detailed Explanation of Defect</label>
+          <textarea id="dispute-notes-input" rows="4" placeholder="Explain the defect, mismatch, or damage in detail..." style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid #CBD5E1; font-size: 12.5px; outline: none; background: #F8FAFC; resize: none;"></textarea>
+        </div>
+
+        <button class="btn-primary" style="width: 100%; padding: 12px; font-size: 13px; font-weight: 800;" onclick="submitReturnClaim()">
+          <i class="fa-solid fa-paper-plane"></i> Submit Return & Dispute Claim
+        </button>
+      </div>
+    `}
+  `;
+}
+
+function submitReturnClaim() {
+  const orderInput = document.getElementById('dispute-order-input');
+  const reasonSelect = document.getElementById('dispute-reason-select');
+  const notesInput = document.getElementById('dispute-notes-input');
+
+  const orderNum = orderInput ? orderInput.value.trim() : state.activeOrder.orderNumber;
+  const reasonVal = reasonSelect ? reasonSelect.value : 'defective_product';
+  const reasonLabel = reasonSelect ? reasonSelect.options[reasonSelect.selectedIndex].text : 'Defective';
+  const notes = notesInput ? notesInput.value.trim() : '';
+
+  if (!notes || notes.length < 5) {
+    alert('Please provide a brief explanation of the issue.');
+    return;
+  }
+
+  const newCaseNum = 'RET-' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '-' + String(Math.floor(1000 + Math.random() * 9000));
+  const newVendorOtp = String(Math.floor(100000 + Math.random() * 900000));
+
+  state.returnCases.unshift({
+    caseNumber: newCaseNum,
+    orderNumber: orderNum,
+    status: 'opened',
+    statusLabel: 'Case Opened (Escrow Locked)',
+    reason: reasonVal,
+    reasonLabel: reasonLabel,
+    amount: state.activeOrder.total,
+    description: notes,
+    vendorOtp: newVendorOtp,
+    date: 'Just now'
+  });
+
+  alert(`Return Claim Submitted Successfully!\nCase Number: ${newCaseNum}\nEscrow funds are safely frozen pending courier pickup.`);
+  renderReturns({ tab: 'cases' });
+}
+
+// Doorstep Rejection Guidance Protocol
+function showDoorstepRejectionGuide() {
+  alert(
+    "DOORSTEP REFUSAL PROTOCOL:\n\n" +
+    "1. Inspect your parcel before entering or sharing the 6-digit Delivery Code.\n" +
+    "2. If damaged, incorrect, or defective: REFUSE TO ENTER OR SHARE THE CODE.\n" +
+    "3. The courier marks 'Customer Rejected Doorstep Delivery' on their terminal.\n" +
+    "4. Platform Escrow automatically refunds 100% of your funds directly into your Spendable Wallet Credits instantly."
+  );
 }

@@ -44,5 +44,16 @@ class ApiEndpoints {
   // Customer Orders & 5-Stage Live Tracking Handshake
   static const String customerOrders = '/api/v1/customer/orders';
   static const String customerOrderDetails = '/api/v1/customer/orders/'; // + {order_number}
+  static const String verifyPayment = '/api/v1/customer/orders/verify-payment';
   static const String confirmDelivery = '/api/v1/customer/orders/'; // + {order_number}/confirm-delivery
+
+  // Customer Wallet Credits (100% Spendable Refund Balance)
+  static const String customerWallet = '/api/v1/customer/wallet';
+
+  // Customer 24h Post-Delivery Disputes & Item-Level Returns
+  static const String orderDispute = '/api/v1/customer/orders/'; // + {order_number}/dispute
+  static const String returnCases = '/api/v1/customer/returns';
+  static const String createReturnCase = '/api/v1/customer/returns/create';
+  static const String returnCaseDetails = '/api/v1/customer/returns/'; // + {case_number}
+  static const String reorderRejectedItems = '/api/v1/customer/orders/reorder-rejected-items';
 }

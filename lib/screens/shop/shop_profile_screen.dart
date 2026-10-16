@@ -8,13 +8,15 @@ import '../../providers/catalog_provider.dart';
 import '../../widgets/brand_app_bar.dart';
 import '../../widgets/product_card.dart';
 
+import '../../core/constants/app_constants.dart';
+
 class ShopProfileScreen extends StatelessWidget {
   final ShopModel shop;
 
   const ShopProfileScreen({super.key, required this.shop});
 
-  Future<void> _makeCall(String phone) async {
-    final uri = Uri.parse('tel:$phone');
+  Future<void> _callPlatformDesk() async {
+    final uri = Uri.parse('tel:${AppConstants.callToOrderPhone}');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     }
@@ -142,19 +144,45 @@ class ShopProfileScreen extends StatelessWidget {
                     ),
                   ),
 
-                  if (shop.phone != null) ...[
-                    const SizedBox(height: 14),
-                    ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryPurple,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.primaryPurple,
+                            side: const BorderSide(color: AppColors.primaryPurple, width: 1.5),
+                            padding: const EdgeInsets.symmetric(vertical: 11),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          icon: const Icon(Icons.support_agent, size: 18),
+                          label: const Text('Call Order Desk', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                          onPressed: _callPlatformDesk,
+                        ),
                       ),
-                      icon: const Icon(Icons.phone, size: 16),
-                      label: const Text('Contact Storefront', style: TextStyle(fontWeight: FontWeight.w700)),
-                      onPressed: () => _makeCall(shop.phone!),
-                    ),
-                  ],
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryPurple,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 11),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          icon: const Icon(Icons.qr_code_2, size: 18),
+                          label: const Text('Inspection Pass', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Select an item below to lock an in-shop inspection pass at this merchant store.'),
+                                backgroundColor: AppColors.primaryPurple,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),

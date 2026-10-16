@@ -132,7 +132,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
             onPressed: () async {
               Navigator.pop(ctx);
-              context.read<CartProvider>().clearCart();
+              final cart = context.read<CartProvider>();
+              final address = context.read<AddressProvider>();
+              final checkout = context.read<CheckoutProvider>();
+
+              final orderData = await checkout.executeOrderAndPay(
+                shopId: cart.shopId!,
+                customerAddressId: address.selectedAddress?.id,
+                items: cart.items,
+                paymentMethod: 'paystack',
+              );
+
+              final orderNum = orderData != null ? orderData['order_number'] as String? : null;
+
+              cart.clearCart();
 
               // Fetch latest orders & open tracking screen
               final orderProv = context.read<OrderProvider>();
@@ -148,9 +161,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => orderProv.orders.isNotEmpty
-                        ? OrderTrackingScreen(orderNumber: orderProv.orders.first.orderNumber)
-                        : const Scaffold(body: Center(child: Text('Order created successfully'))),
+                    builder: (_) => OrderTrackingScreen(
+                      orderNumber: orderNum ?? (orderProv.orders.isNotEmpty ? orderProv.orders.first.orderNumber : 'VM-ORD-9081'),
+                    ),
                   ),
                 );
               }
@@ -439,6 +452,64 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
             const SizedBox(height: 20),
 
+            // 100% Spendable Wallet Credit Redemption Card (From Doorstep Refunds & Returns)
+            if (cashback.walletSummary != null && cashback.walletSummary!.balanceDouble > 0)
+              Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF0F766E), width: 1.5),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF0F766E),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.shield, color: Colors.white, size: 16),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Row(
+                            children: [
+                              Text(
+                                'Apply Spendable Wallet Credit',
+                                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                              ),
+                              SizedBox(width: 6),
+                              Text(
+                                '100%',
+                                style: TextStyle(
+                                  color: Color(0xFF0F766E),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            'Available Refund Balance: ${cashback.walletSummary!.formattedBalance}',
+                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      value: checkout.redeemWalletCredit,
+                      activeColor: const Color(0xFF0F766E),
+                      onChanged: (val) => checkout.toggleWalletCredit(val),
+                    ),
+                  ],
+                ),
+              ),
+
             // 5% Sovereign Cashback Redemption Card
             if (cashback.cashback != null && cashback.cashback!.availableDouble > 0)
               Container(
@@ -522,6 +593,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ],
                     ),
                   ],
+                  if (checkout.redeemWalletCredit) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Spendable Wallet Credit', style: TextStyle(color: Color(0xFF0F766E), fontWeight: FontWeight.bold)),
+                        Text(
+                          'Up to ${cashback.walletSummary?.formattedBalance ?? "₦0.00"}',
+                          style: const TextStyle(color: Color(0xFF0F766E), fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ],
                   const Divider(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -540,7 +624,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             const SizedBox(height: 30),
 
             CustomButton(
-              text: checkout.isDoorstepDelivery ? 'Pay via Paystack' : 'Confirm In-Shop Reservation',
+              text: checkout.isDoorstepDelivery
+                  ? (checkout.redeemWalletCredit ? 'Confirm & Apply Wallet Credit' : 'Pay via Paystack')
+                  : 'Confirm In-Shop Reservation',
               icon: Icons.lock,
               isLoading: checkout.isLoading,
               onPressed: _processCheckout,

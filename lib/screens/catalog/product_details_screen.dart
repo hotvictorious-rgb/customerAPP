@@ -367,6 +367,118 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         ),
                       ),
 
+                      // Verified Demonstration Video Card (Zero-Trust YouTube Stream)
+                      if (product.hasVideo) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          color: Colors.white,
+                          width: double.infinity,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Row(
+                                    children: [
+                                      Icon(Icons.play_circle_fill, color: Colors.red, size: 22),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Verified Video Unboxing',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w800,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.withOpacity(0.08),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: Colors.red.withOpacity(0.3)),
+                                    ),
+                                    child: const Text(
+                                      'YouTube HD',
+                                      style: TextStyle(
+                                        color: Colors.red,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    CachedNetworkImage(
+                                      imageUrl: product.videoThumbnailUrl ??
+                                          'https://img.youtube.com/vi/${product.youtubeVideoId}/hqdefault.jpg',
+                                      height: 190,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                      errorWidget: (_, __, ___) => Container(
+                                        height: 190,
+                                        color: Colors.black12,
+                                        child: const Center(child: Icon(Icons.videocam, size: 48, color: AppColors.textMuted)),
+                                      ),
+                                    ),
+                                    Container(
+                                      height: 190,
+                                      width: double.infinity,
+                                      color: Colors.black.withOpacity(0.3),
+                                    ),
+                                    Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        borderRadius: BorderRadius.circular(30),
+                                        onTap: () => _openVideoModal(context, product),
+                                        child: Container(
+                                          width: 60,
+                                          height: 60,
+                                          decoration: BoxDecoration(
+                                            color: Colors.red,
+                                            shape: BoxShape.circle,
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.red.withOpacity(0.5),
+                                                blurRadius: 16,
+                                                offset: const Offset(0, 4),
+                                              ),
+                                            ],
+                                          ),
+                                          child: const Icon(Icons.play_arrow, color: Colors.white, size: 36),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              const Row(
+                                children: [
+                                  Icon(Icons.shield, size: 13, color: AppColors.primaryPurple),
+                                  SizedBox(width: 5),
+                                  Expanded(
+                                    child: Text(
+                                      'Zero-Trust Stream: Verified merchant physical unboxing and inspection video.',
+                                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+
                       const SizedBox(height: 120), // Padding for sticky bottom bar
                     ],
                   ),
@@ -399,7 +511,52 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                             isSecondary: true,
                             icon: Icons.add_shopping_cart,
                             onPressed: () {
-                              context.read<CartProvider>().addToCart(product, quantity: _quantity);
+                              final cart = context.read<CartProvider>();
+                              if (cart.isDifferentShop(product)) {
+                                showDialog(
+                                  context: context,
+                                  builder: (ctx) => AlertDialog(
+                                    title: const Row(
+                                      children: [
+                                        Icon(Icons.store, color: AppColors.primaryPurple, size: 20),
+                                        SizedBox(width: 8),
+                                        Text('Single Store Checkout', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                                      ],
+                                    ),
+                                    content: Text(
+                                      'Your bag contains items from ${cart.currentShopName}. Would you like to clear your bag and start a new order from ${product.shop?.name ?? "this merchant"}?',
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(ctx),
+                                        child: const Text('Keep Current Bag'),
+                                      ),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppColors.primaryPurple,
+                                          foregroundColor: Colors.white,
+                                        ),
+                                        onPressed: () {
+                                          Navigator.pop(ctx);
+                                          cart.clearAndAdd(product, quantity: _quantity);
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Bag cleared and added $_quantity of ${product.name}'),
+                                              backgroundColor: AppColors.primaryDarkPurple,
+                                              behavior: SnackBarBehavior.floating,
+                                            ),
+                                          );
+                                        },
+                                        child: const Text('Start New Bag'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                return;
+                              }
+
+                              cart.addToCart(product, quantity: _quantity);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text('Added $_quantity of ${product.name} to bag'),
@@ -479,6 +636,120 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 ),
               ),
             ),
+    );
+  }
+
+  void _openVideoModal(BuildContext context, ProductModel product) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.play_circle_fill, color: Colors.red, size: 24),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Video Demonstration',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                    ),
+                  ],
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(ctx),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              product.name,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+            ),
+            const SizedBox(height: 14),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  CachedNetworkImage(
+                    imageUrl: product.videoThumbnailUrl ??
+                        'https://img.youtube.com/vi/${product.youtubeVideoId}/hqdefault.jpg',
+                    height: 220,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                  Container(
+                    height: 220,
+                    width: double.infinity,
+                    color: Colors.black.withOpacity(0.4),
+                  ),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(color: Colors.red.withOpacity(0.5), blurRadius: 20, offset: const Offset(0, 4)),
+                          ],
+                        ),
+                        child: const Icon(Icons.play_arrow, color: Colors.white, size: 40),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Video ID: ${product.youtubeVideoId}',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontFamily: 'monospace',
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.lock, size: 16, color: AppColors.success),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Zero-Trust Stream: No server-side HTTP calls. Stream rendered via sandboxed Google YouTube CDN.',
+                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
     );
   }
 }

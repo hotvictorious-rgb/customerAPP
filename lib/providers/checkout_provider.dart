@@ -12,6 +12,7 @@ class CheckoutProvider extends ChangeNotifier {
 
   String _fulfillmentType = 'doorstep_delivery';
   bool _redeemCashback = false;
+  bool _redeemWalletCredit = false;
   FulfillmentResultModel? _fulfillmentResult;
   CheckoutIntentModel? _checkoutIntent;
   PickupReservationModel? _activeReservation;
@@ -21,6 +22,7 @@ class CheckoutProvider extends ChangeNotifier {
   String get fulfillmentType => _fulfillmentType;
   bool get isDoorstepDelivery => _fulfillmentType == 'doorstep_delivery';
   bool get redeemCashback => _redeemCashback;
+  bool get redeemWalletCredit => _redeemWalletCredit;
   FulfillmentResultModel? get fulfillmentResult => _fulfillmentResult;
   CheckoutIntentModel? get checkoutIntent => _checkoutIntent;
   PickupReservationModel? get activeReservation => _activeReservation;
@@ -36,6 +38,11 @@ class CheckoutProvider extends ChangeNotifier {
 
   void toggleCashback(bool value) {
     _redeemCashback = value;
+    notifyListeners();
+  }
+
+  void toggleWalletCredit(bool value) {
+    _redeemWalletCredit = value;
     notifyListeners();
   }
 
@@ -138,6 +145,7 @@ class CheckoutProvider extends ChangeNotifier {
           'customer_address_id': customerAddressId,
         'items': itemsPayload,
         'redeem_cashback': _redeemCashback,
+        'redeem_wallet_credit': _redeemWalletCredit,
         'payment_method': paymentMethod,
       });
 
@@ -206,8 +214,36 @@ class CheckoutProvider extends ChangeNotifier {
       }
     } catch (_) {}
 
+  Future<bool> verifyOrderPayment({
+    required String orderNumber,
+    required String reference,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final res = await apiClient.post(ApiEndpoints.verifyPayment, data: {
+        'order_number': orderNumber,
+        'reference': reference,
+      });
+
+      if (res.data['status'] == true) {
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = res.data['message'] ?? 'Payment verification failed.';
+      }
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+    } catch (_) {
+      _errorMessage = 'Payment verification could not be completed.';
+    }
+
     _isLoading = false;
     notifyListeners();
-    return null;
+    return false;
   }
 }
+

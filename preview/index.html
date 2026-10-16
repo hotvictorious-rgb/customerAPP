@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Victorious MARKET — Customer Mobile App Simulator</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; frame-src https://www.youtube-nocookie.com https://www.youtube.com; img-src 'self' data: https:;">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="icon" type="image/jpeg" href="assets/vm_icon.jpg">
@@ -30,7 +31,8 @@
       <button class="nav-pill-btn" onclick="switchTab('explore')">Explore</button>
       <button class="nav-pill-btn" onclick="switchTab('cart')">Bag (<span class="cart-pill-count">0</span>)</button>
       <button class="nav-pill-btn" onclick="switchTab('orders')">Orders & PIN</button>
-      <button class="nav-pill-btn" onclick="switchTab('wallet')">5% Cashback</button>
+      <button class="nav-pill-btn" onclick="switchTab('wallet')">Wallet & Cashback</button>
+      <button class="nav-pill-btn" onclick="switchTab('returns')">Returns & Claims</button>
       <button class="nav-pill-btn" onclick="openReservationDemo()">Inspection Pass</button>
     </div>
   </div>
@@ -262,20 +264,48 @@
           </div>
         </section>
 
-        <!-- 9. 5% SOVEREIGN CASHBACK WALLET SCREEN -->
+        <!-- 9. VICTORIOUS CUSTOMER WALLET SCREEN -->
         <section class="screen-view" id="view-wallet">
           <div class="app-bar">
-            <div class="app-bar-title">Sovereign Rewards Wallet</div>
-            <div></div>
+            <div class="app-bar-title">Victorious Customer Wallet</div>
+            <button class="icon-btn" onclick="switchTab('returns')"><i class="fa-solid fa-box-open"></i></button>
           </div>
           <div style="padding: 16px;">
-            <div class="otp-gold-card" style="text-align: left;">
+            <!-- CARD 1: 100% Spendable Wallet Credits Card -->
+            <div style="background: linear-gradient(135deg, #0F766E, #14B8A6); border-radius: 20px; padding: 20px; color: white; margin-bottom: 16px; box-shadow: 0 10px 20px rgba(15, 118, 110, 0.3);">
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span class="otp-title">AVAILABLE CASHBACK</span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <i class="fa-solid fa-shield-halved"></i>
+                  <span style="font-size: 11px; font-weight: 900; letter-spacing: 1px;">SPENDABLE REFUND CREDITS</span>
+                </div>
+                <span style="background: white; color: #0F766E; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 900;">100% SPENDABLE</span>
+              </div>
+              <h2 style="font-size: 32px; font-weight: 900; color: white; margin: 10px 0;" id="wallet-credit-amount">₦320,000.00</h2>
+              <p style="font-size: 11px; color: rgba(255,255,255,0.85); line-height: 1.3;">
+                Directly credited from doorstep rejections and approved return disputes. Spendable on any cart without restriction.
+              </p>
+            </div>
+
+            <!-- CARD 2: Gold Sovereign Cashback Balance -->
+            <div class="otp-gold-card" style="text-align: left; margin-bottom: 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="otp-title">AVAILABLE 5% CASHBACK</span>
                 <span style="background: var(--primary-purple); color: white; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 900;">5% REWARD</span>
               </div>
-              <h2 style="font-size: 32px; font-weight: 900; color: var(--primary-dark); margin: 10px 0;">₦2,500.00</h2>
-              <p style="font-size: 12px; font-weight: 700; color: var(--text-primary);">Pending Maturation: ₦500.00</p>
+              <h2 style="font-size: 30px; font-weight: 900; color: var(--primary-dark); margin: 8px 0;">₦16,000.00</h2>
+              <p style="font-size: 12px; font-weight: 700; color: var(--text-primary);">Pending Maturation (24h Window): ₦2,500.00</p>
+            </div>
+
+            <!-- Quick Link to Returns & Disputes -->
+            <div onclick="switchTab('returns')" style="background: white; border-radius: 14px; padding: 14px; border: 1px solid var(--border-light); margin-bottom: 16px; display: flex; align-items: center; gap: 12px; cursor: pointer;">
+              <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(94, 23, 235, 0.1); display: flex; align-items: center; justify-content: center; color: var(--primary-purple);">
+                <i class="fa-solid fa-box-open"></i>
+              </div>
+              <div style="flex: 1;">
+                <div style="font-size: 13px; font-weight: 800;">Returns & Refund Claims</div>
+                <div style="font-size: 11px; color: var(--text-secondary);">Track 24h reverse logistics and refund status</div>
+              </div>
+              <i class="fa-solid fa-chevron-right" style="font-size: 11px; color: var(--text-muted);"></i>
             </div>
 
             <div style="background: white; border-radius: 16px; padding: 16px; border: 1px solid var(--border-light); margin-bottom: 16px;">
@@ -336,7 +366,12 @@
               </div>
               <div class="menu-row" onclick="switchTab('wallet')" style="padding: 14px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-light); cursor: pointer;">
                 <i class="fa-solid fa-wallet" style="color: var(--primary-purple); width: 20px;"></i>
-                <div style="flex: 1;"><div style="font-size: 13px; font-weight: 700;">Sovereign Cashback Wallet</div><div style="font-size: 11px; color: var(--text-secondary);">₦2,500.00 Available</div></div>
+                <div style="flex: 1;"><div style="font-size: 13px; font-weight: 700;">Sovereign Cashback Wallet</div><div style="font-size: 11px; color: var(--text-secondary);">₦320,000.00 Credits • ₦16,000.00 Cashback</div></div>
+                <i class="fa-solid fa-chevron-right" style="font-size: 11px; color: var(--text-muted);"></i>
+              </div>
+              <div class="menu-row" onclick="switchTab('returns')" style="padding: 14px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-light); cursor: pointer;">
+                <i class="fa-solid fa-box-open" style="color: var(--primary-purple); width: 20px;"></i>
+                <div style="flex: 1;"><div style="font-size: 13px; font-weight: 700;">Returns & Refund Claims</div><div style="font-size: 11px; color: var(--text-secondary);">24h Sovereign Escrow protection & disputes</div></div>
                 <i class="fa-solid fa-chevron-right" style="font-size: 11px; color: var(--text-muted);"></i>
               </div>
               <div class="menu-row" onclick="openReservationDemo()" style="padding: 14px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-light); cursor: pointer;">
@@ -374,6 +409,24 @@
           </div>
           <div id="shop-profile-content">
             <!-- Dynamically populated shop banner, badge, hours and product catalog -->
+          </div>
+        </section>
+
+        <!-- 10. RETURNS & DISPUTES SCREEN -->
+        <section class="screen-view" id="view-returns">
+          <div class="app-bar">
+            <button class="icon-btn" onclick="switchTab('orders')" style="border: none;">
+              <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <div class="app-bar-brand" style="margin-left: 8px;">
+              <div class="app-bar-title">Returns & Claims</div>
+            </div>
+            <button class="icon-btn" onclick="switchTab('wallet')">
+              <i class="fa-solid fa-wallet"></i>
+            </button>
+          </div>
+          <div id="returns-content-area" style="padding: 16px;">
+            <!-- Dynamically rendered by renderReturns() -->
           </div>
         </section>
 
