@@ -23,6 +23,16 @@ class ProductModel {
   final CategoryModel? category;
   final DateTime? lastFreshnessVerifiedAt;
   final DateTime? listingConfirmedAt;
+  final String condition;
+  final String? conditionLabel;
+  final String? slashPrice;
+  final int? discountPercent;
+  final String? warrantyType;
+  final String? warrantyLabel;
+  final String packageTier;
+  final String? packageTierLabel;
+  final double rating;
+  final int reviewsCount;
 
   ProductModel({
     required this.id,
@@ -45,6 +55,16 @@ class ProductModel {
     this.category,
     this.lastFreshnessVerifiedAt,
     this.listingConfirmedAt,
+    this.condition = 'brand_new',
+    this.conditionLabel,
+    this.slashPrice,
+    this.discountPercent,
+    this.warrantyType = 'in_store_testing',
+    this.warrantyLabel,
+    this.packageTier = 'bike',
+    this.packageTierLabel,
+    this.rating = 0.0,
+    this.reviewsCount = 0,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
@@ -63,6 +83,18 @@ class ProductModel {
 
     final rawStock = json['inventory_quantity'] ?? json['current_stock'] ?? 0;
     final inStockVal = json['is_in_stock'] == true || json['is_in_stock'] == 1 || (json['is_in_stock'] == null && (rawStock is int ? rawStock > 0 : true));
+
+    final rawRating = json['rating'];
+    double parsedRating = 0.0;
+    if (rawRating != null) {
+      parsedRating = double.tryParse(rawRating.toString()) ?? 0.0;
+    }
+
+    final rawReviewsCount = json['reviews_count'] ?? 0;
+    int parsedReviewsCount = rawReviewsCount is int ? rawReviewsCount : int.tryParse(rawReviewsCount.toString()) ?? 0;
+
+    final cond = json['condition']?.toString() ?? 'brand_new';
+    final tier = json['package_tier']?.toString() ?? 'bike';
 
     return ProductModel(
       id: json['id'] as int,
@@ -87,12 +119,26 @@ class ProductModel {
           ? DateTime.tryParse(json['last_freshness_verified_at'].toString())
           : null,
       listingConfirmedAt: confirmedAt,
+      condition: cond,
+      conditionLabel: json['condition_label'] as String? ?? (cond == 'uk_used' ? 'UK Used (Clean Grade A)' : 'Brand New (Sealed Pack)'),
+      slashPrice: json['slash_price']?.toString(),
+      discountPercent: json['discount_percent'] as int?,
+      warrantyType: json['warranty_type'] as String?,
+      warrantyLabel: json['warranty_label'] as String?,
+      packageTier: tier,
+      packageTierLabel: json['package_tier_label'] as String? ?? (tier == 'keke' ? 'Keke Cargo' : 'Bike Dispatch'),
+      rating: parsedRating,
+      reviewsCount: parsedReviewsCount,
     );
   }
 
   String get formattedPrice => CurrencyFormatter.format(unitPrice);
+  String? get formattedSlashPrice => slashPrice != null ? CurrencyFormatter.format(slashPrice!) : null;
+  bool get hasDiscount => slashPrice != null && slashPrice != '0.00' && slashPrice != unitPrice;
   bool get inStock => isInStock && currentStock > 0;
   bool get hasVideo => youtubeVideoId != null && youtubeVideoId!.trim().isNotEmpty;
+  bool get isUkUsed => condition == 'uk_used';
+  bool get isKekeTier => packageTier == 'keke' || packageTier == 'bulky';
 
   bool get isFresh {
     if (listingConfirmedAt == null) return true;

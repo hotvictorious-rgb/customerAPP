@@ -107,64 +107,135 @@ const SEED_PRODUCTS = [
     id: 1,
     name: 'Samsung Galaxy A54 5G 128GB Awesome Violet',
     unit_price: '320000.00',
+    slash_price: '360000.00',
+    condition: 'brand_new',
+    warranty_type: '1_year_samsung',
+    package_tier: 'bike_dispatch',
+    rating: 4.8,
+    reviews_count: 12,
     is_vmarket_flagship: true,
     pickup_enabled: true,
     youtube_video_id: 'eWpT35yFv4c',
     shop: { name: 'MegaTech Uyo Plaza', lga_id: 69 },
     thumbnail: 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?auto=format&fit=crop&w=400&q=80',
-    description: 'Verified brand new flagship smartphone with official warranty in Akwa Ibom State.'
+    description: 'Verified brand new flagship smartphone with official Samsung Nigeria warranty in Akwa Ibom State.'
   },
   {
     id: 2,
     name: 'HP Pavilion 15 Core i5 16GB RAM 512GB SSD',
     unit_price: '780000.00',
+    slash_price: '850000.00',
+    condition: 'uk_used',
+    warranty_type: '6_months_shop',
+    package_tier: 'bike_dispatch',
+    rating: 4.9,
+    reviews_count: 8,
     is_vmarket_flagship: true,
     pickup_enabled: true,
     shop: { name: 'Apex Computer Hub Uyo', lga_id: 69 },
     thumbnail: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=400&q=80',
-    description: 'High performance laptop suitable for engineering, programming and corporate work.'
+    description: 'Grade A clean UK-Used high performance laptop suitable for engineering, programming and corporate work in Uyo.'
   },
   {
     id: 3,
     name: 'Smart 4K UHD LED TV 55 Inch Frameless',
     unit_price: '450000.00',
+    slash_price: '510000.00',
+    condition: 'brand_new',
+    warranty_type: '1_year_official',
+    package_tier: 'keke_cargo',
+    rating: 4.7,
+    reviews_count: 5,
     is_vmarket_flagship: false,
     pickup_enabled: true,
     shop: { name: 'Eket Electronics Centre', lga_id: 70 },
     thumbnail: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?auto=format&fit=crop&w=400&q=80',
-    description: 'Crystal clear cinematic display with HDR10+ and Dolby Audio sound.'
+    description: 'Crystal clear cinematic display with HDR10+ and Dolby Audio sound. Dispatched via Keke Cargo for delicate transport.'
   },
   {
     id: 4,
     name: 'Apple iPhone 15 Pro 128GB Natural Titanium',
     unit_price: '1450000.00',
+    slash_price: '1550000.00',
+    condition: 'brand_new',
+    warranty_type: '1_year_apple',
+    package_tier: 'bike_dispatch',
+    rating: 5.0,
+    reviews_count: 19,
     is_vmarket_flagship: true,
     pickup_enabled: true,
     shop: { name: 'Victorious Flagship Gadgets', lga_id: 69 },
     thumbnail: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=400&q=80',
-    description: 'Aerospace-grade titanium design with A17 Pro chip and 48MP main camera.'
+    description: 'Aerospace-grade titanium design with A17 Pro chip and 48MP main camera. Sealed retail box with 1 Year Apple Care.'
   },
   {
     id: 5,
     name: 'Royal Heritage Akwete Traditional Woven Fabric',
     unit_price: '45000.00',
+    slash_price: '50000.00',
+    condition: 'brand_new',
+    warranty_type: '30_days_return',
+    package_tier: 'bike_dispatch',
+    rating: 4.8,
+    reviews_count: 7,
     is_vmarket_flagship: false,
     pickup_enabled: true,
     shop: { name: 'Ikot Ekpene Craft & Textiles', lga_id: 71 },
     thumbnail: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=400&q=80',
-    description: 'Authentic handcrafted cultural attire from master weavers in Akwa Ibom.'
+    description: 'Authentic handcrafted cultural attire from master weavers in Ikot Ekpene, Akwa Ibom.'
   },
   {
     id: 6,
     name: 'Fresh Premium Akwa Ibom Palm Oil (5 Litres)',
     unit_price: '18500.00',
+    slash_price: '22000.00',
+    condition: 'brand_new',
+    warranty_type: 'standard',
+    package_tier: 'bike_dispatch',
+    rating: 4.9,
+    reviews_count: 23,
     is_vmarket_flagship: false,
     pickup_enabled: false,
     shop: { name: 'Oron Agro Merchants', lga_id: 72 },
     thumbnail: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=400&q=80',
-    description: 'Pure, unadulterated grade-A organic red palm oil sourced directly from farm clusters.'
+    description: 'Pure, unadulterated grade-A organic red palm oil sourced directly from farm clusters in Oron LGA.'
   }
 ];
+
+const SEED_REVIEWS = {
+  1: [
+    {
+      id: 101,
+      customer_name: 'Aniefiok Bassey',
+      rating: 5,
+      headline: 'Authentic sealed package, lightning-fast dispatch!',
+      comment: 'Delivered in under 3 hours to Aka Road. The seal was intact and 5G speeds are incredible. Very satisfied with Victorious Market!',
+      is_verified_buyer: true,
+      created_at: '2026-10-15'
+    },
+    {
+      id: 102,
+      customer_name: 'Blessing Effiong',
+      rating: 5,
+      headline: 'Got my 5% Cashback immediately after PIN entry',
+      comment: 'Courier called before arriving, checked the Samsung warranty card at the doorstep. The ₦16,000 sovereign cashback is already in my wallet.',
+      is_verified_buyer: true,
+      created_at: '2026-10-12'
+    }
+  ],
+  2: [
+    {
+      id: 103,
+      customer_name: 'Kufre Udoh',
+      rating: 5,
+      headline: 'Grade A Clean as promised - 0 scratches',
+      comment: 'Battery health is at 96%, keyboard and display are pristine. Best UK-Used purchase I have made in Uyo.',
+      is_verified_buyer: true,
+      created_at: '2026-10-14'
+    }
+  ]
+};
+
 
 const SEED_CATEGORIES = [
   { name: 'Phones & Tablets', slug: 'phones', icon: 'fa-mobile-screen-button' },
@@ -370,12 +441,20 @@ function renderHomeProducts() {
 function createProductCardHtml(p) {
   const imgUrl = p.thumbnail || 'assets/vm_icon.jpg';
   const shopName = (p.shop && p.shop.name) ? p.shop.name : 'Verified Merchant';
+  const hasDiscount = p.slash_price && parseFloat(p.slash_price) > parseFloat(p.unit_price);
+  const discountPct = hasDiscount ? Math.round(((parseFloat(p.slash_price) - parseFloat(p.unit_price)) / parseFloat(p.slash_price)) * 100) : 0;
+  const isUkUsed = p.condition === 'uk_used';
+  const isKeke = p.package_tier === 'keke_cargo';
+  const ratingVal = p.rating ? parseFloat(p.rating).toFixed(1) : '4.8';
+  const revCount = p.reviews_count || 1;
+
   return `
     <div class="product-card" onclick="openProductDetails(${p.id})">
       <div class="product-card-img-wrap">
         <img src="${imgUrl}" alt="${p.name}" onerror="this.src='assets/vm_icon.jpg'">
         ${p.is_vmarket_flagship ? `<div class="flagship-badge"><i class="fa-solid fa-crown"></i> FLAGSHIP</div>` : ''}
-        ${p.pickup_enabled ? `<div class="pickup-badge"><i class="fa-solid fa-store"></i> Pickup Ready</div>` : ''}
+        ${isUkUsed ? `<div class="pickup-badge" style="background:#1E293B; color:#F8FAFC;"><i class="fa-solid fa-gem"></i> UK Used</div>` : ''}
+        ${isKeke ? `<div style="position:absolute; top:8px; left:8px; background:#7C3AED; color:white; font-size:9px; font-weight:800; padding:2px 6px; border-radius:4px;"><i class="fa-solid fa-truck-ramp-box"></i> Keke Cargo</div>` : ''}
       </div>
       <div class="product-card-body">
         <div>
@@ -384,9 +463,22 @@ function createProductCardHtml(p) {
             <span style="font-size: 9.5px; font-weight: 800; color: #B45309; background: #FEF3C7; padding: 1px 6px; border-radius: 4px;">+5% Reward</span>
           </div>
           <div class="product-title">${p.name}</div>
+          <div style="display:flex; align-items:center; gap:4px; font-size:11px; margin-top:3px;">
+            <span style="color:#F59E0B; font-weight:800;">★ ${ratingVal}</span>
+            <span style="color:#94A3B8; font-size:10px;">(${revCount})</span>
+            ${isUkUsed ? `<span style="font-size:9px; font-weight:800; color:#475569; background:#F1F5F9; padding:1px 5px; border-radius:3px; margin-left:auto;">Grade A</span>` : ''}
+          </div>
         </div>
         <div class="product-card-footer">
-          <div class="product-price">${formatNaira(p.unit_price)}</div>
+          <div>
+            <div class="product-price">${formatNaira(p.unit_price)}</div>
+            ${hasDiscount ? `
+              <div style="display:flex; align-items:center; gap:4px; font-size:10.5px;">
+                <span style="text-decoration:line-through; color:#94A3B8;">${formatNaira(p.slash_price)}</span>
+                <span style="color:#DC2626; font-weight:800; font-size:9.5px;">-${discountPct}%</span>
+              </div>
+            ` : ''}
+          </div>
           <button class="add-bag-btn" onclick="event.stopPropagation(); addToCart(${p.id})">
             <i class="fa-solid fa-plus"></i>
           </button>
@@ -397,7 +489,7 @@ function createProductCardHtml(p) {
 }
 
 // Product Details Screen
-function openProductDetails(id) {
+async function openProductDetails(id) {
   const product = state.products.find(p => p.id === id);
   if (!product) return;
   state.selectedProduct = product;
@@ -406,22 +498,83 @@ function openProductDetails(id) {
   const imgUrl = product.thumbnail || 'assets/vm_icon.jpg';
   const shopName = (product.shop && product.shop.name) ? product.shop.name : 'Verified Merchant Shop';
 
+  const hasDiscount = product.slash_price && parseFloat(product.slash_price) > parseFloat(product.unit_price);
+  const discountPct = hasDiscount ? Math.round(((parseFloat(product.slash_price) - parseFloat(product.unit_price)) / parseFloat(product.slash_price)) * 100) : 0;
+  const isUkUsed = product.condition === 'uk_used';
+  const isKeke = product.package_tier === 'keke_cargo';
+  const ratingVal = product.rating ? parseFloat(product.rating).toFixed(1) : '4.8';
+  const revCount = product.reviews_count || 1;
+
+  let warrantyLabel = '1 Year Official Warranty';
+  if (product.warranty_type === '6_months_shop') warrantyLabel = '6 Months Shop Warranty';
+  else if (product.warranty_type === '30_days_return') warrantyLabel = '30 Days Guaranteed Return';
+  else if (product.warranty_type === '1_year_apple') warrantyLabel = '1 Year Apple Nigeria Warranty';
+  else if (product.warranty_type === '1_year_samsung') warrantyLabel = '1 Year Samsung Care Warranty';
+
+  // Fetch reviews or fallback to SEED_REVIEWS
+  let reviews = SEED_REVIEWS[id] || [
+    {
+      id: 99,
+      customer_name: 'Verified Customer',
+      rating: 5,
+      headline: 'Authentic item received in perfect condition',
+      comment: 'Arrived quickly with intact packaging and tested at delivery counter. Very satisfied with Victorious Market.',
+      is_verified_buyer: true,
+      created_at: '2026-10-14'
+    }
+  ];
+
+  try {
+    const res = await fetch(`${API_BASE}/products/${id}/reviews`);
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.data && json.data.reviews) {
+        const fetched = json.data.reviews.data || json.data.reviews;
+        if (Array.isArray(fetched) && fetched.length > 0) {
+          reviews = fetched;
+        }
+      }
+    }
+  } catch (_) {}
+
   content.innerHTML = `
     <div style="background: white; padding: 20px; text-align: center;">
       <img src="${imgUrl}" style="max-height: 220px; max-width: 100%; border-radius: 12px; object-fit: contain;">
     </div>
     <div style="padding: 16px; background: white; margin-top: 8px;">
-      <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-        <span style="background: var(--success-light); color: var(--success); font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px;">
-          <i class="fa-solid fa-circle-check"></i> 7-Day Verified Fresh
+      <!-- Badges Row -->
+      <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;">
+        <span style="background: ${isUkUsed ? '#1E293B' : '#059669'}; color: white; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px;">
+          ${isUkUsed ? '🇬🇧 UK Used (Grade A Clean)' : '✨ Brand New (Sealed Pack)'}
+        </span>
+        <span style="background: ${isKeke ? '#7C3AED' : '#0284C7'}; color: white; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px;">
+          ${isKeke ? '🛺 Keke Cargo (Bulky / Fragile)' : '🏍️ Bike Dispatch (Fast Track)'}
         </span>
         <span style="background: var(--gold-light); color: var(--text-primary); font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px;">
           +5% Sovereign Cashback
         </span>
       </div>
+
       <h2 style="font-size: 17px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">${product.name}</h2>
-      <div style="font-size: 22px; font-weight: 900; color: var(--primary-purple); margin-bottom: 16px;">
-        ${formatNaira(product.unit_price)}
+      
+      <!-- Price & Discount Section -->
+      <div style="margin-bottom: 14px;">
+        <div style="display: flex; align-items: baseline; gap: 8px;">
+          <div style="font-size: 24px; font-weight: 900; color: var(--primary-purple);">
+            ${formatNaira(product.unit_price)}
+          </div>
+          ${hasDiscount ? `
+            <div style="font-size: 14px; text-decoration: line-through; color: #94A3B8; font-weight: 600;">
+              ${formatNaira(product.slash_price)}
+            </div>
+            <span style="background: #FEE2E2; color: #DC2626; font-size: 10.5px; font-weight: 800; padding: 2px 7px; border-radius: 6px;">
+              -${discountPct}% OFF
+            </span>
+          ` : ''}
+        </div>
+        <div style="display: inline-flex; align-items: center; gap: 5px; background: #F1F5F9; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; color: #334155; margin-top: 6px;">
+          <i class="fa-solid fa-shield-halved" style="color: var(--primary-purple);"></i> ${warrantyLabel}
+        </div>
       </div>
 
       <div style="border-top: 1px solid var(--border-light); padding-top: 14px;">
@@ -466,6 +619,56 @@ function openProductDetails(id) {
           </div>
         </div>
       ` : ''}
+
+      <!-- Verified Customer Reviews & Star Ratings Section -->
+      <div style="border-top: 1px solid var(--border-light); padding-top: 16px; margin-top: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div style="font-size: 14px; font-weight: 800; color: #0F172A;">Customer Reviews & Ratings</div>
+          <span style="background: #DCFCE7; color: #16A34A; font-size: 9.5px; font-weight: 800; padding: 3px 8px; border-radius: 6px;">
+            <i class="fa-solid fa-circle-check"></i> Verified Buyers Only
+          </span>
+        </div>
+
+        <!-- Rating Summary Box -->
+        <div style="background: #F8FAFC; border-radius: 10px; padding: 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+          <div>
+            <div style="display: flex; align-items: baseline; gap: 4px;">
+              <span style="font-size: 24px; font-weight: 900; color: #0F172A;">${ratingVal}</span>
+              <span style="font-size: 12px; color: #94A3B8;">/ 5.0</span>
+            </div>
+            <div style="color: #F59E0B; font-size: 13px; margin-top: 2px;">
+              ${'★'.repeat(Math.round(parseFloat(ratingVal)))}${'☆'.repeat(5 - Math.round(parseFloat(ratingVal)))}
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 12.5px; font-weight: 800; color: #0F172A;">${reviews.length} Verified Review${reviews.length === 1 ? '' : 's'}</div>
+            <div style="font-size: 10.5px; color: #64748B;">Delivered Purchases</div>
+          </div>
+        </div>
+
+        <!-- Reviews List -->
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          ${reviews.map(r => `
+            <div style="border-bottom: 1px solid #F1F5F9; padding-bottom: 10px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <div style="width: 22px; height: 22px; border-radius: 50%; background: rgba(94, 23, 235, 0.1); color: var(--primary-purple); font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center;">
+                    ${(r.customer_name || 'C')[0]}
+                  </div>
+                  <span style="font-size: 12px; font-weight: 800; color: #1E293B;">${r.customer_name || 'Verified Customer'}</span>
+                  ${r.is_verified_buyer ? `<i class="fa-solid fa-circle-check" style="color: #16A34A; font-size: 11px;"></i>` : ''}
+                </div>
+                <div style="color: #F59E0B; font-size: 11px;">
+                  ${'★'.repeat(r.rating || 5)}${'☆'.repeat(5 - (r.rating || 5))}
+                </div>
+              </div>
+              ${r.headline ? `<div style="font-size: 12px; font-weight: 800; color: #0F172A; margin-bottom: 3px;">${r.headline}</div>` : ''}
+              <div style="font-size: 11.5px; color: #475569; line-height: 1.4;">${r.comment}</div>
+              <div style="font-size: 10px; color: #94A3B8; margin-top: 4px;">${r.created_at || 'Recently'}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
 
       <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 10px;">
         <button class="btn-primary" onclick="addToCart(${product.id}); switchTab('cart')">
@@ -859,6 +1062,16 @@ function renderOrders() {
           </div>
           <button style="background: #FEE2E2; color: #DC2626; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; white-space: nowrap;" onclick="switchTab('returns', { tab: 'form', orderNumber: '${o.orderNumber}' })">
             Request Return
+          </button>
+        </div>
+
+        <div style="margin-top: 10px; padding: 12px; background: white; border-radius: 12px; border: 1.5px solid #FDE68A; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <div style="text-align: left;">
+            <div style="font-size: 11px; font-weight: 800; color: #92400E;"><i class="fa-solid fa-star" style="color: #F59E0B;"></i> Rate & Review Purchased Item</div>
+            <div style="font-size: 10px; color: #64748B;">Verified buyers only. Feedback updates product star ratings.</div>
+          </div>
+          <button style="background: #F59E0B; color: white; border: none; padding: 7px 14px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; white-space: nowrap;" onclick="openReviewModal('${o.orderNumber}', 1, 'Samsung Galaxy A54 5G 128GB Awesome Violet')">
+            Leave Review
           </button>
         </div>
       </div>
@@ -1610,4 +1823,135 @@ function showDoorstepRejectionGuide() {
     "3. The courier marks 'Customer Rejected Doorstep Delivery' on their terminal.\n" +
     "4. Platform Escrow automatically refunds 100% of your funds directly into your Spendable Wallet Credits instantly."
   );
+}
+
+// Verified Product Review Modal State & Handlers
+let currentReviewContext = {
+  orderNumber: 'VM-ORD-9081',
+  productId: 1,
+  rating: 5
+};
+
+function openReviewModal(orderNumber, productId, productName) {
+  currentReviewContext.orderNumber = orderNumber || state.activeOrder.orderNumber;
+  currentReviewContext.productId = productId || 1;
+  currentReviewContext.rating = 5;
+
+  const prodNameEl = document.getElementById('modalReviewProductName');
+  if (prodNameEl) prodNameEl.textContent = productName || 'Delivered Product Item';
+
+  const headlineEl = document.getElementById('modalReviewHeadline');
+  if (headlineEl) headlineEl.value = '';
+
+  const commentEl = document.getElementById('modalReviewComment');
+  if (commentEl) commentEl.value = '';
+
+  setReviewRating(5);
+
+  const overlay = document.getElementById('reviewModalOverlay');
+  const modal = document.getElementById('reviewModal');
+  if (overlay) overlay.classList.add('active');
+  if (modal) modal.classList.add('active');
+}
+
+function closeReviewModal() {
+  const overlay = document.getElementById('reviewModalOverlay');
+  const modal = document.getElementById('reviewModal');
+  if (overlay) overlay.classList.remove('active');
+  if (modal) modal.classList.remove('active');
+}
+
+function setReviewRating(rating) {
+  currentReviewContext.rating = rating;
+  const starsWrap = document.getElementById('modalReviewStarsWrap');
+  if (starsWrap) {
+    const starSpans = starsWrap.querySelectorAll('.star-item');
+    starSpans.forEach((span, idx) => {
+      span.style.color = idx < rating ? '#F59E0B' : '#CBD5E1';
+    });
+  }
+
+  const labelEl = document.getElementById('modalReviewRatingText');
+  if (labelEl) {
+    const labels = {
+      1: '1.0 - Poor / Defective',
+      2: '2.0 - Below Expectations',
+      3: '3.0 - Average / Neutral',
+      4: '4.0 - Good Product',
+      5: '5.0 - Excellent Product'
+    };
+    labelEl.textContent = labels[rating] || `${rating}.0`;
+  }
+}
+
+async function submitModalReview() {
+  const headlineEl = document.getElementById('modalReviewHeadline');
+  const commentEl = document.getElementById('modalReviewComment');
+  const submitBtn = document.getElementById('btnSubmitReview');
+
+  const headline = headlineEl ? headlineEl.value.trim() : '';
+  const comment = commentEl ? commentEl.value.trim() : '';
+
+  if (!comment || comment.length < 3) {
+    alert('Please enter at least 3 characters describing your experience.');
+    return;
+  }
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting Review...';
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/customer/reviews`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        order_id: 1,
+        product_id: currentReviewContext.productId,
+        rating: currentReviewContext.rating,
+        headline: headline || null,
+        comment: comment
+      })
+    });
+    
+    // Whether backend is reached or offline simulator fallback
+    const newRev = {
+      id: Date.now(),
+      customer_name: 'You (Verified Buyer)',
+      rating: currentReviewContext.rating,
+      headline: headline || 'Verified Purchase Feedback',
+      comment: comment,
+      is_verified_buyer: true,
+      created_at: 'Just now'
+    };
+
+    if (!SEED_REVIEWS[currentReviewContext.productId]) {
+      SEED_REVIEWS[currentReviewContext.productId] = [];
+    }
+    SEED_REVIEWS[currentReviewContext.productId].unshift(newRev);
+
+    // Update target product rating
+    const prod = state.products.find(p => p.id === currentReviewContext.productId);
+    if (prod) {
+      prod.reviews_count = (prod.reviews_count || 0) + 1;
+    }
+
+    closeReviewModal();
+    alert('Thank you! Your verified purchase review has been published.\nStar rating updated across the marketplace.');
+    if (state.currentTab === 'details') {
+      openProductDetails(currentReviewContext.productId);
+    }
+  } catch (err) {
+    closeReviewModal();
+    alert('Verified review recorded in simulator state.');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Post Verified Review';
+    }
+  }
 }

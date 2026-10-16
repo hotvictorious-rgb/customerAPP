@@ -559,6 +559,54 @@
         </div>
       </div>
 
+      <!-- Interactive Verified Review Submission Modal -->
+      <div class="review-modal-overlay" id="reviewModalOverlay" onclick="closeReviewModal()"></div>
+      <div class="review-modal" id="reviewModal">
+        <div class="location-modal-handle"></div>
+        <div class="location-modal-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-star" style="color: #F59E0B; font-size: 17px;"></i>
+            <h3 style="font-size: 15px; font-weight: 800; margin: 0; color: #1E293B;">Verified Product Review</h3>
+          </div>
+          <button class="modal-close-btn" onclick="closeReviewModal()">×</button>
+        </div>
+
+        <div class="location-modal-body" style="padding: 16px;">
+          <div style="padding: 10px 12px; background: #F8FAFC; border-radius: 12px; border: 1px solid #E2E8F0; margin-bottom: 14px;">
+            <div id="modalReviewProductName" style="font-size: 12.5px; font-weight: 800; color: #1E293B;">Product Item</div>
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 10px; color: #16A34A; font-weight: 800; margin-top: 3px;">
+              <i class="fa-solid fa-circle-check"></i> Post-Delivery Verified Buyer
+            </div>
+          </div>
+
+          <div style="text-align: center; margin-bottom: 14px;">
+            <div style="font-size: 11px; font-weight: 800; color: #64748B; margin-bottom: 4px;">YOUR RATING:</div>
+            <div id="modalReviewStarsWrap" style="font-size: 26px; color: #F59E0B; cursor: pointer; letter-spacing: 6px; user-select: none;">
+              <span class="star-item" onclick="setReviewRating(1)">★</span>
+              <span class="star-item" onclick="setReviewRating(2)">★</span>
+              <span class="star-item" onclick="setReviewRating(3)">★</span>
+              <span class="star-item" onclick="setReviewRating(4)">★</span>
+              <span class="star-item" onclick="setReviewRating(5)">★</span>
+            </div>
+            <div id="modalReviewRatingText" style="font-size: 11px; font-weight: 800; color: #D97706; margin-top: 3px;">5.0 - Excellent Product</div>
+          </div>
+
+          <div style="margin-bottom: 10px;">
+            <label style="display: block; font-size: 10.5px; font-weight: 800; color: #475569; margin-bottom: 4px;">HEADLINE (OPTIONAL):</label>
+            <input type="text" id="modalReviewHeadline" placeholder="e.g. Clean Grade A, authentic packaging!" style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1.5px solid #CBD5E1; font-size: 12px; outline: none;">
+          </div>
+
+          <div style="margin-bottom: 14px;">
+            <label style="display: block; font-size: 10.5px; font-weight: 800; color: #475569; margin-bottom: 4px;">DETAILED FEEDBACK:</label>
+            <textarea id="modalReviewComment" rows="3" placeholder="Share your experience with product condition, dispatch speed, and performance..." style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1.5px solid #CBD5E1; font-size: 12px; outline: none; resize: none;"></textarea>
+          </div>
+
+          <button class="btn-primary" id="btnSubmitReview" style="width: 100%; padding: 11px; font-size: 13px; font-weight: 800;" onclick="submitModalReview()">
+            <i class="fa-solid fa-paper-plane"></i> Post Verified Review
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 

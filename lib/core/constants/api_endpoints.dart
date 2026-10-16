@@ -56,4 +56,9 @@ class ApiEndpoints {
   static const String createReturnCase = '/api/v1/customer/returns/create';
   static const String returnCaseDetails = '/api/v1/customer/returns/'; // + {case_number}
   static const String reorderRejectedItems = '/api/v1/customer/orders/reorder-rejected-items';
+
+  // Customer Verified Product Reviews (Only Delivered Purchases)
+  static const String productReviews = '/api/v1/products/'; // + {id}/reviews
+  static const String submitReview = '/api/v1/customer/reviews';
+  static const String myReviews = '/api/v1/customer/reviews/my-reviews';
 }

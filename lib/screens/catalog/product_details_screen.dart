@@ -7,6 +7,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/catalog_provider.dart';
 import '../../providers/checkout_provider.dart';
+import '../../providers/review_provider.dart';
 import '../../widgets/brand_app_bar.dart';
 import '../../widgets/custom_button.dart';
 import '../auth/login_screen.dart';
@@ -31,6 +32,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<CatalogProvider>().fetchProductDetails(widget.productId);
+      context.read<ReviewProvider>().fetchProductReviews(widget.productId);
     });
   }
 
@@ -123,12 +125,15 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
+                            // Badges Row
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 6,
+                              crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
                                 if (product.isVmarketFlagship)
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    margin: const EdgeInsets.only(right: 8),
                                     decoration: BoxDecoration(
                                       gradient: AppColors.goldGradient,
                                       borderRadius: BorderRadius.circular(6),
@@ -142,23 +147,87 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                       ),
                                     ),
                                   ),
+                                // Condition Badge
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: AppColors.successLight,
+                                    color: product.isUkUsed ? const Color(0xFFEBF5FF) : AppColors.successLight,
                                     borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: product.isUkUsed ? const Color(0xFF76A9FA) : AppColors.success.withOpacity(0.4),
+                                    ),
                                   ),
-                                  child: const Row(
+                                  child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(Icons.verified, size: 12, color: AppColors.success),
-                                      SizedBox(width: 4),
+                                      Icon(
+                                        product.isUkUsed ? Icons.devices_other : Icons.new_releases,
+                                        size: 12,
+                                        color: product.isUkUsed ? const Color(0xFF1E429F) : AppColors.success,
+                                      ),
+                                      const SizedBox(width: 4),
                                       Text(
-                                        'Verified Fresh Stock',
+                                        product.conditionLabel ?? (product.isUkUsed ? 'UK Used' : 'Brand New'),
                                         style: TextStyle(
-                                          color: AppColors.success,
+                                          color: product.isUkUsed ? const Color(0xFF1E429F) : AppColors.success,
                                           fontSize: 10,
                                           fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                // Star Rating Pill
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFFFBEB),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(color: const Color(0xFFFDE68A)),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.star, size: 12, color: Color(0xFFD97706)),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        product.rating > 0
+                                            ? '${product.rating.toStringAsFixed(1)} (${product.reviewsCount})'
+                                            : 'New Listing',
+                                        style: const TextStyle(
+                                          color: Color(0xFF92400E),
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                // Logistics Courier Tier Pill
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: product.isKekeTier ? const Color(0xFFFFF7ED) : const Color(0xFFF3F4F6),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: product.isKekeTier ? const Color(0xFFFDBA74) : const Color(0xFFD1D5DB),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        product.isKekeTier ? Icons.local_shipping : Icons.two_wheeler,
+                                        size: 12,
+                                        color: product.isKekeTier ? const Color(0xFFC2410C) : AppColors.textPrimary,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        product.packageTierLabel ?? (product.isKekeTier ? 'Keke Cargo' : 'Bike Dispatch'),
+                                        style: TextStyle(
+                                          color: product.isKekeTier ? const Color(0xFFC2410C) : AppColors.textPrimary,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w700,
                                         ),
                                       ),
                                     ],
@@ -179,8 +248,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                             ),
                             const SizedBox(height: 12),
 
-                            // Price & 5% Cashback preview
-                            Row(
+                            // Price, Slash Price & 5% Cashback preview
+                            Wrap(
+                              spacing: 12,
+                              runSpacing: 8,
+                              crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
                                 Text(
                                   product.formattedPrice,
@@ -190,7 +262,33 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                     color: AppColors.primaryPurple,
                                   ),
                                 ),
-                                const SizedBox(width: 14),
+                                if (product.hasDiscount) ...[
+                                  Text(
+                                    product.formattedSlashPrice ?? '',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textMuted,
+                                      decoration: TextDecoration.lineThrough,
+                                    ),
+                                  ),
+                                  if (product.discountPercent != null)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.danger.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        '-${product.discountPercent}% OFF',
+                                        style: const TextStyle(
+                                          color: AppColors.danger,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                    ),
+                                ],
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
@@ -216,6 +314,36 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                 ),
                               ],
                             ),
+
+                            // Warranty Banner Pill
+                            if (product.warrantyLabel != null) ...[
+                              const SizedBox(height: 12),
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF9FAFB),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: AppColors.border),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.verified_user_outlined, size: 14, color: AppColors.primaryPurple),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'Warranty: ${product.warrantyLabel}',
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                             const SizedBox(height: 16),
 
                             // Quantity Stepper
@@ -478,6 +606,221 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           ),
                         ),
                       ],
+
+                      // Verified Customer Reviews & Star Ratings Section
+                      const SizedBox(height: 12),
+                      Consumer<ReviewProvider>(
+                        builder: (context, reviewProv, _) {
+                          final reviews = reviewProv.productReviews;
+                          final avgRating = reviewProv.averageRating > 0 ? reviewProv.averageRating : product.rating;
+                          final count = reviewProv.reviewsCount > 0 ? reviewProv.reviewsCount : product.reviewsCount;
+
+                          return Container(
+                            padding: const EdgeInsets.all(16),
+                            color: Colors.white,
+                            width: double.infinity,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Customer Reviews',
+                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.success.withOpacity(0.08),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(color: AppColors.success.withOpacity(0.3)),
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.verified, size: 12, color: AppColors.success),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            'Verified Buyers Only',
+                                            style: TextStyle(
+                                              color: AppColors.success,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                // Overall Rating Summary Row
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.background,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Text(
+                                                avgRating.toStringAsFixed(1),
+                                                style: const TextStyle(
+                                                  fontSize: 26,
+                                                  fontWeight: FontWeight.w900,
+                                                  color: AppColors.textPrimary,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              const Text(
+                                                '/ 5.0',
+                                                style: TextStyle(fontSize: 13, color: AppColors.textMuted),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Row(
+                                            children: List.generate(5, (index) {
+                                              return Icon(
+                                                index < avgRating.round() ? Icons.star : Icons.star_border,
+                                                color: Colors.amber,
+                                                size: 16,
+                                              );
+                                            }),
+                                          ),
+                                        ],
+                                      ),
+                                      const Spacer(),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            '$count ${count == 1 ? "review" : "reviews"}',
+                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          const Text(
+                                            'Post-delivery verified',
+                                            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                if (reviewProv.isLoading && reviews.isEmpty)
+                                  const Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(vertical: 24.0),
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  )
+                                else if (reviews.isEmpty)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                                    alignment: Alignment.center,
+                                    child: Column(
+                                      children: [
+                                        Icon(Icons.rate_review_outlined, size: 40, color: AppColors.textMuted.withOpacity(0.5)),
+                                        const SizedBox(height: 8),
+                                        const Text(
+                                          'No customer reviews yet',
+                                          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        const Text(
+                                          'Only verified buyers who completed their order can leave an authentic review.',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                else
+                                  ListView.separated(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    itemCount: reviews.length,
+                                    separatorBuilder: (_, __) => const Divider(height: 24),
+                                    itemBuilder: (context, idx) {
+                                      final rev = reviews[idx];
+                                      return Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  CircleAvatar(
+                                                    radius: 12,
+                                                    backgroundColor: AppColors.primaryPurple.withOpacity(0.1),
+                                                    child: Text(
+                                                      rev.customerName != null && rev.customerName!.isNotEmpty
+                                                          ? rev.customerName![0].toUpperCase()
+                                                          : 'C',
+                                                      style: const TextStyle(
+                                                        color: AppColors.primaryPurple,
+                                                        fontSize: 11,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Text(
+                                                    rev.customerName ?? 'Verified Customer',
+                                                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                                                  ),
+                                                  if (rev.isVerifiedBuyer) ...[
+                                                    const SizedBox(width: 6),
+                                                    const Icon(Icons.check_circle, size: 13, color: AppColors.success),
+                                                  ],
+                                                ],
+                                              ),
+                                              Row(
+                                                children: List.generate(5, (sIdx) {
+                                                  return Icon(
+                                                    sIdx < rev.rating ? Icons.star : Icons.star_border,
+                                                    color: Colors.amber,
+                                                    size: 13,
+                                                  );
+                                                }),
+                                              ),
+                                            ],
+                                          ),
+                                          if (rev.headline != null && rev.headline!.isNotEmpty) ...[
+                                            const SizedBox(height: 6),
+                                            Text(
+                                              rev.headline!,
+                                              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                                            ),
+                                          ],
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            rev.comment,
+                                            style: const TextStyle(fontSize: 13, color: AppColors.textPrimary, height: 1.4),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            '${rev.createdAt.day}/${rev.createdAt.month}/${rev.createdAt.year}',
+                                            style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
 
                       const SizedBox(height: 120), // Padding for sticky bottom bar
                     ],

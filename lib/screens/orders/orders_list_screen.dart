@@ -7,7 +7,8 @@ import '../../providers/order_provider.dart';
 import '../../widgets/brand_app_bar.dart';
 import '../../widgets/custom_button.dart';
 import '../auth/login_screen.dart';
-import 'order_tracking_screen.dart';
+import '../orders/order_tracking_screen.dart';
+import '../../widgets/submit_review_dialog.dart';
 
 class OrdersListScreen extends StatefulWidget {
   final bool isRootTab;
@@ -191,23 +192,55 @@ class _OrdersListScreenState extends State<OrdersListScreen> {
                 order.isDoorstepDelivery ? 'Doorstep Delivery' : 'In-Shop Pickup',
                 style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
               ),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.gps_fixed, size: 14),
-                label: const Text('Track Live & PIN'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryPurple,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  minimumSize: Size.zero,
-                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => OrderTrackingScreen(orderNumber: order.orderNumber),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (order.isDelivered && order.items.isNotEmpty) ...[
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.star, size: 13, color: Colors.amber),
+                      label: const Text(
+                        'Review',
+                        style: TextStyle(color: AppColors.primaryPurple, fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: AppColors.primaryPurple),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      onPressed: () {
+                        final item = order.items.first;
+                        SubmitReviewDialog.show(
+                          context,
+                          orderId: order.id,
+                          productId: item.productId,
+                          productName: item.productName,
+                        );
+                      },
                     ),
-                  );
-                },
+                    const SizedBox(width: 8),
+                  ],
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.gps_fixed, size: 14),
+                    label: const Text('Track Live & PIN'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryPurple,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      minimumSize: Size.zero,
+                      textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => OrderTrackingScreen(orderNumber: order.orderNumber),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
             ],
           ),

@@ -10,6 +10,7 @@ import '../../widgets/delivery_stepper.dart';
 import '../../widgets/otp_security_card.dart';
 import '../returns/returns_screen.dart';
 import '../wallet/wallet_cashback_screen.dart';
+import '../../widgets/submit_review_dialog.dart';
 
 class OrderTrackingScreen extends StatefulWidget {
   final String orderNumber;
@@ -320,6 +321,103 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     );
   }
 
+  void _openReviewModalForOrder(OrderModel order) {
+    if (order.items.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No reviewable items found in this order.')),
+      );
+      return;
+    }
+    if (order.items.length == 1) {
+      final item = order.items.first;
+      SubmitReviewDialog.show(
+        context,
+        orderId: order.id,
+        productId: item.productId,
+        productName: item.productName,
+      );
+    } else {
+      showModalBottomSheet(
+        context: context,
+        backgroundColor: Colors.transparent,
+        builder: (ctx) => Container(
+          padding: const EdgeInsets.all(20),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.star, color: Colors.amber, size: 22),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Select Item to Review',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: order.items.length,
+                  separatorBuilder: (_, __) => const Divider(height: 16),
+                  itemBuilder: (context, i) {
+                    final item = order.items[i];
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const CircleAvatar(
+                        backgroundColor: AppColors.background,
+                        child: Icon(Icons.shopping_bag_outlined, color: AppColors.primaryPurple, size: 20),
+                      ),
+                      title: Text(
+                        item.productName,
+                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Text(
+                        'Qty: ${item.quantity} • ${item.formattedTotal}',
+                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                      ),
+                      trailing: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryPurple,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          SubmitReviewDialog.show(
+                            context,
+                            orderId: order.id,
+                            productId: item.productId,
+                            productName: item.productName,
+                          );
+                        },
+                        child: const Text('Review', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+  }
+
   Widget _buildDoorstepArrivalCard(OrderModel order) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -562,6 +660,49 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                     );
                   },
                   child: const Text('Request Return', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800)),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.amber.shade200),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.star_rounded, color: Colors.amber, size: 24),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Verified Buyer Review',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      ),
+                      Text(
+                        'Rate your purchase & share feedback to help the Akwa Ibom marketplace.',
+                        style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber.shade700,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: () => _openReviewModalForOrder(order),
+                  child: const Text('Rate Item', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800)),
                 ),
               ],
             ),
