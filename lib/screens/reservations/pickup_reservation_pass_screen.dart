@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../core/constants/app_colors.dart';
 import '../../models/pickup_reservation_model.dart';
+import '../../providers/checkout_provider.dart';
 import '../../widgets/brand_app_bar.dart';
 import '../../widgets/custom_button.dart';
 import '../shell/main_navigation_shell.dart';
@@ -10,6 +12,55 @@ class PickupReservationPassScreen extends StatelessWidget {
   final PickupReservationModel reservation;
 
   const PickupReservationPassScreen({super.key, required this.reservation});
+
+  void _confirmCancelReservation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cancel Reservation?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        content: const Text(
+          'Are you sure you want to cancel this reservation? The held merchant inventory will be released immediately.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Keep Reservation'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger, foregroundColor: Colors.white),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final checkout = context.read<CheckoutProvider>();
+              final success = await checkout.cancelReservation(reservation.reservationCode);
+              if (context.mounted) {
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Reservation cancelled. Stock released back to merchant.'),
+                      backgroundColor: AppColors.success,
+                    ),
+                  );
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MainNavigationShell()),
+                    (route) => false,
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(checkout.errorMessage ?? 'Failed to cancel reservation.'),
+                      backgroundColor: AppColors.danger,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Yes, Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -173,6 +224,20 @@ class PickupReservationPassScreen extends StatelessWidget {
                   (route) => false,
                 );
               },
+            ),
+
+            const SizedBox(height: 12),
+
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.danger,
+                side: const BorderSide(color: AppColors.danger),
+                minimumSize: const Size.fromHeight(48),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              icon: const Icon(Icons.cancel_outlined, size: 18),
+              label: const Text('Cancel Reservation & Release Stock', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              onPressed: () => _confirmCancelReservation(context),
             ),
           ],
         ),

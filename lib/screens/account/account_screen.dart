@@ -153,6 +153,110 @@ class AccountScreen extends StatelessWidget {
     );
   }
 
+  void _showEditProfileDialog(BuildContext context) {
+    final auth = context.read<AuthProvider>();
+    final user = auth.user;
+    if (user == null) return;
+
+    final nameCtrl = TextEditingController(text: user.name);
+    final phoneCtrl = TextEditingController(text: user.phone ?? '');
+    final passCtrl = TextEditingController();
+    bool isSaving = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(
+            children: [
+              Icon(Icons.manage_accounts, color: AppColors.primaryPurple, size: 24),
+              SizedBox(width: 8),
+              Text('Edit Profile', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Full Name', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                const SizedBox(height: 4),
+                TextField(
+                  controller: nameCtrl,
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.person_outline, size: 20),
+                    hintText: 'Your Full Name',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text('Phone Number', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                const SizedBox(height: 4),
+                TextField(
+                  controller: phoneCtrl,
+                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.phone_outlined, size: 20),
+                    hintText: 'e.g. 08012345678',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text('New Password (leave empty to keep current)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                const SizedBox(height: 4),
+                TextField(
+                  controller: passCtrl,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.lock_outline, size: 20),
+                    hintText: 'Min 8 characters',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryPurple,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: isSaving ? null : () async {
+                setModalState(() => isSaving = true);
+                final success = await auth.updateProfile(
+                  name: nameCtrl.text.trim(),
+                  phone: phoneCtrl.text.trim(),
+                  password: passCtrl.text.trim().isNotEmpty ? passCtrl.text.trim() : null,
+                );
+                if (context.mounted) {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(success ? 'Profile updated successfully!' : (auth.errorMessage ?? 'Update failed.')),
+                      backgroundColor: success ? AppColors.success : AppColors.danger,
+                    ),
+                  );
+                }
+              },
+              child: isSaving
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('Save Changes'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
@@ -216,7 +320,13 @@ class AccountScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  if (!auth.isAuthenticated)
+                  if (auth.isAuthenticated)
+                    IconButton(
+                      icon: const Icon(Icons.edit, color: AppColors.secondaryGold, size: 20),
+                      tooltip: 'Edit Profile',
+                      onPressed: () => _showEditProfileDialog(context),
+                    )
+                  else
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.secondaryGold,
@@ -302,6 +412,15 @@ class AccountScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
+                  if (auth.isAuthenticated) ...[
+                    _buildMenuItem(
+                      icon: Icons.person_outline,
+                      title: 'Edit Profile & Security',
+                      subtitle: 'Update full name, phone number & password',
+                      onTap: () => _showEditProfileDialog(context),
+                    ),
+                    const Divider(height: 1, indent: 56),
+                  ],
                   _buildMenuItem(
                     icon: Icons.receipt_long,
                     title: 'My Orders & Live Tracking',

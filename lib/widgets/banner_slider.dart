@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
+import '../core/services/storage_service.dart';
 import '../models/banner_model.dart';
+import '../providers/catalog_provider.dart';
 import '../screens/catalog/catalog_screen.dart';
 
 class BannerSliderWidget extends StatefulWidget {
@@ -56,6 +59,38 @@ class _BannerSliderWidgetState extends State<BannerSliderWidget> {
     super.dispose();
   }
 
+  String _resolveImageUrl(String? originalUrl) {
+    if (originalUrl == null || originalUrl.isEmpty) return '';
+    try {
+      final storage = context.read<StorageService>();
+      final configuredBase = storage.getBaseUrl().replaceAll(RegExp(r'/+$'), '');
+      if (originalUrl.contains('127.0.0.1:8080') || originalUrl.contains('localhost:8080')) {
+        return originalUrl
+            .replaceFirst('http://127.0.0.1:8080', configuredBase)
+            .replaceFirst('http://localhost:8080', configuredBase);
+      }
+    } catch (_) {}
+    return originalUrl;
+  }
+
+  void _handleBannerTap(BannerModel banner) {
+    final cta = (banner.ctaUrl ?? '').trim().toLowerCase();
+    final catalog = context.read<CatalogProvider>();
+
+    if (cta.contains('#tech') || banner.title.toLowerCase().contains('tech')) {
+      catalog.search('tech');
+    } else if (cta.contains('#fresh') || banner.title.toLowerCase().contains('fresh')) {
+      catalog.search('fresh');
+    } else if (banner.isFlashUrgency) {
+      catalog.toggleFlagship();
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const CatalogScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.banners.isEmpty) {
@@ -106,12 +141,7 @@ class _BannerSliderWidgetState extends State<BannerSliderWidget> {
 
   Widget _buildBannerCard(BuildContext context, BannerModel banner) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const CatalogScreen()),
-        );
-      },
+      onTap: () => _handleBannerTap(banner),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: Container(
@@ -134,12 +164,13 @@ class _BannerSliderWidgetState extends State<BannerSliderWidget> {
   }
 
   Widget _buildFullCover(BannerModel banner) {
+    final imgUrl = _resolveImageUrl(banner.imageUrl);
     return Stack(
       fit: StackFit.expand,
       children: [
-        if (banner.imageUrl != null && banner.imageUrl!.isNotEmpty)
+        if (imgUrl.isNotEmpty)
           CachedNetworkImage(
-            imageUrl: banner.imageUrl!,
+            imageUrl: imgUrl,
             fit: BoxFit.cover,
             errorWidget: (_, __, ___) => _buildFallbackGraphic(banner),
           )
@@ -340,20 +371,23 @@ class _BannerSliderWidgetState extends State<BannerSliderWidget> {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(0, 10, 12, 10),
             child: Center(
-              child: banner.imageUrl != null && banner.imageUrl!.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: banner.imageUrl!,
-                      fit: BoxFit.contain,
-                      placeholder: (_, __) => const Center(
-                        child: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.secondaryGold),
+              child: () {
+                final imgUrl = _resolveImageUrl(banner.imageUrl);
+                return imgUrl.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: imgUrl,
+                        fit: BoxFit.contain,
+                        placeholder: (_, __) => const Center(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.secondaryGold),
+                          ),
                         ),
-                      ),
-                      errorWidget: (_, __, ___) => _buildFallbackGraphic(banner),
-                    )
-                  : _buildFallbackGraphic(banner),
+                        errorWidget: (_, __, ___) => _buildFallbackGraphic(banner),
+                      )
+                    : _buildFallbackGraphic(banner);
+              }(),
             ),
           ),
         ),

@@ -219,6 +219,34 @@ class CheckoutProvider extends ChangeNotifier {
     return null;
   }
 
+  Future<bool> cancelReservation(String code) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final res = await apiClient.post('${ApiEndpoints.cancelReservation}${code.trim().toUpperCase()}/cancel');
+      if (res.data['status'] == true) {
+        if (_activeReservation?.reservationCode == code.trim().toUpperCase()) {
+          _activeReservation = null;
+        }
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = res.data['message'] ?? 'Failed to cancel reservation.';
+      }
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+    } catch (_) {
+      _errorMessage = 'Failed to cancel reservation. Please check connection.';
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
+
   Future<bool> verifyOrderPayment({
     required String orderNumber,
     required String reference,

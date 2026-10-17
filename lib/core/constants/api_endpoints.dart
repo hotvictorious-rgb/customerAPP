@@ -13,6 +13,7 @@ class ApiEndpoints {
   static const String login = '/api/v1/auth/login';
   static const String register = '/api/v1/auth/register';
   static const String me = '/api/v1/auth/me';
+  static const String updateProfile = '/api/v1/customer/update-profile';
 
   // Geography (Canonical: Country -> State -> LGA)
   static const String countries = '/api/v1/geography/countries';
@@ -22,10 +23,13 @@ class ApiEndpoints {
   // Customer Addresses
   static const String addressList = '/api/v1/customer/address/list';
   static const String addressAdd = '/api/v1/customer/address/add';
+  static const String addressUpdate = '/api/v1/customer/address/update/'; // + {id?}
+  static const String addressDelete = '/api/v1/customer/address/delete/'; // + {id?}
 
   // Catalog & Storefront Dynamic Banners
   static const String banners = '/api/v1/banners';
   static const String categories = '/api/v1/categories';
+  static const String shops = '/api/v1/shops';
   static const String products = '/api/v1/products';
   static const String productDetails = '/api/v1/products/'; // + {id}
 
@@ -40,6 +44,7 @@ class ApiEndpoints {
   // In-Shop Inspection Reservations (₦0.00 down)
   static const String createReservation = '/api/v1/pickup-reservations/create';
   static const String getReservation = '/api/v1/pickup-reservations/'; // + {code}
+  static const String cancelReservation = '/api/v1/customer/pickup-reservations/'; // + {code}/cancel
 
   // Customer Orders & 5-Stage Live Tracking Handshake
   static const String customerOrders = '/api/v1/customer/orders';

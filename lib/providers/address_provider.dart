@@ -130,6 +130,35 @@ class AddressProvider extends ChangeNotifier {
     return false;
   }
 
+  Future<bool> deleteAddress(int id) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final res = await apiClient.delete('${ApiEndpoints.addressDelete}$id');
+      if (res.data['status'] == true) {
+        _addresses.removeWhere((a) => a.id == id);
+        if (_selectedAddress?.id == id) {
+          _selectedAddress = _addresses.isNotEmpty ? _addresses.first : null;
+        }
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = res.data['message'] ?? 'Failed to delete address.';
+      }
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+    } catch (_) {
+      _errorMessage = 'Failed to delete address. Please try again.';
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
+
   void selectAddress(CustomerAddressModel address) {
     _selectedAddress = address;
     notifyListeners();

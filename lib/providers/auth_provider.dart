@@ -152,6 +152,45 @@ class AuthProvider extends ChangeNotifier {
     return false;
   }
 
+  Future<bool> updateProfile({
+    String? name,
+    String? phone,
+    String? avatar,
+    String? password,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final Map<String, dynamic> data = {};
+      if (name != null && name.trim().isNotEmpty) data['name'] = name.trim();
+      if (phone != null && phone.trim().isNotEmpty) data['phone'] = phone.trim();
+      if (avatar != null && avatar.trim().isNotEmpty) data['avatar'] = avatar.trim();
+      if (password != null && password.isNotEmpty) data['password'] = password;
+
+      final res = await apiClient.post(ApiEndpoints.updateProfile, data: data);
+      if (res.data['status'] == true && res.data['user'] != null) {
+        final updatedUser = UserModel.fromJson(res.data['user']);
+        await storageService.saveUser(updatedUser);
+        _user = updatedUser;
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = res.data['message'] ?? 'Failed to update profile.';
+      }
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+    } catch (_) {
+      _errorMessage = 'An error occurred while updating profile.';
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
+
   Future<void> logout() async {
     await FirebaseNotificationService.instance.unregisterWithBackend(
       apiClient: apiClient,

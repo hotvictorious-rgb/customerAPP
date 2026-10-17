@@ -22,6 +22,39 @@ class _AddressListScreenState extends State<AddressListScreen> {
     });
   }
 
+  void _confirmDeleteAddress(BuildContext context, int id, String contactName) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Address', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        content: Text('Are you sure you want to remove "$contactName" from your saved delivery addresses?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger, foregroundColor: Colors.white),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final addressProv = context.read<AddressProvider>();
+              final success = await addressProv.deleteAddress(id);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(success ? 'Address removed.' : (addressProv.errorMessage ?? 'Failed to delete address.')),
+                    backgroundColor: success ? AppColors.success : AppColors.danger,
+                  ),
+                );
+              }
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final addressProv = context.watch<AddressProvider>();
@@ -101,7 +134,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
                                     style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
                                   ),
                                   const Spacer(),
-                                  if (addr.isDefault)
+                                  if (addr.isDefault) ...[
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                       decoration: BoxDecoration(
@@ -117,6 +150,16 @@ class _AddressListScreenState extends State<AddressListScreen> {
                                         ),
                                       ),
                                     ),
+                                    const SizedBox(width: 8),
+                                  ],
+                                  IconButton(
+                                    icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.danger),
+                                    visualDensity: VisualDensity.compact,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    tooltip: 'Delete address',
+                                    onPressed: () => _confirmDeleteAddress(context, addr.id, addr.contactName),
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: 8),

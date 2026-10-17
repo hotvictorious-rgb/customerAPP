@@ -12,6 +12,7 @@ class CatalogProvider extends ChangeNotifier {
   List<CategoryModel> _categories = [];
   List<ProductModel> _products = [];
   List<ProductModel> _flagshipProducts = [];
+  List<ProductModel> _shopProducts = [];
   List<ShopModel> _shops = [];
   ProductModel? _productDetails;
   bool _isLoading = false;
@@ -32,6 +33,7 @@ class CatalogProvider extends ChangeNotifier {
   List<CategoryModel> get categories => _categories;
   List<ProductModel> get products => _products;
   List<ProductModel> get flagshipProducts => _flagshipProducts;
+  List<ProductModel> get shopProducts => _shopProducts;
   List<ShopModel> get shops => _shops;
   ProductModel? get productDetails => _productDetails;
   bool get isLoading => _isLoading;
@@ -193,13 +195,34 @@ class CatalogProvider extends ChangeNotifier {
     try {
       final Map<String, dynamic> params = {};
       if (lgaId != null) params['lga_id'] = lgaId;
-      final res = await apiClient.get('/api/v1/shops', queryParameters: params);
+      final res = await apiClient.get(ApiEndpoints.shops, queryParameters: params);
       if (res.data['status'] == true && res.data['data'] != null) {
         final list = res.data['data'] as List;
         _shops = list.map((e) => ShopModel.fromJson(e)).toList();
         notifyListeners();
       }
     } catch (_) {}
+  }
+
+  Future<void> fetchProductsByShop(int shopId) async {
+    _isLoading = true;
+    _shopProducts = [];
+    notifyListeners();
+
+    try {
+      final res = await apiClient.get(ApiEndpoints.products, queryParameters: {'shop_id': shopId});
+      if (res.data['status'] == true && res.data['data'] != null) {
+        final dataWrapper = res.data['data'];
+        final list = (dataWrapper is Map && dataWrapper['data'] != null)
+            ? dataWrapper['data'] as List
+            : (dataWrapper is List ? dataWrapper : []);
+
+        _shopProducts = list.map((e) => ProductModel.fromJson(e)).toList();
+      }
+    } catch (_) {}
+
+    _isLoading = false;
+    notifyListeners();
   }
 
   void setLocation({

@@ -10,10 +10,23 @@ import '../../widgets/product_card.dart';
 
 import '../../core/constants/app_constants.dart';
 
-class ShopProfileScreen extends StatelessWidget {
+class ShopProfileScreen extends StatefulWidget {
   final ShopModel shop;
 
   const ShopProfileScreen({super.key, required this.shop});
+
+  @override
+  State<ShopProfileScreen> createState() => _ShopProfileScreenState();
+}
+
+class _ShopProfileScreenState extends State<ShopProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CatalogProvider>().fetchProductsByShop(widget.shop.id);
+    });
+  }
 
   Future<void> _callPlatformDesk() async {
     final uri = Uri.parse('tel:${AppConstants.callToOrderPhone}');
@@ -25,7 +38,10 @@ class ShopProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final catalog = context.watch<CatalogProvider>();
-    final shopProducts = catalog.products.where((p) => p.shop != null && p.shop!.id == shop.id).toList();
+    final shop = widget.shop;
+    final shopProducts = catalog.shopProducts.isNotEmpty
+        ? catalog.shopProducts
+        : catalog.products.where((p) => p.shop != null && p.shop!.id == shop.id).toList();
 
     return Scaffold(
       appBar: BrandAppBar(

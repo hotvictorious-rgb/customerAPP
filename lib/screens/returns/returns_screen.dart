@@ -29,17 +29,16 @@ class _ReturnsScreenState extends State<ReturnsScreen> with SingleTickerProvider
   final _formKey = GlobalKey<FormState>();
   String? _selectedOrderNumber;
   int? _selectedOrderId;
-  String _selectedReason = 'defective_product';
+  String _selectedReason = 'materially_defective';
   final _descriptionController = TextEditingController();
   bool _isSubmitting = false;
 
   final List<Map<String, String>> _reasons = [
-    {'value': 'defective_product', 'label': 'Defective / Not Working'},
-    {'value': 'wrong_item_sent', 'label': 'Wrong Item Delivered'},
-    {'value': 'misdescribed_counterfeit', 'label': 'Counterfeit / Misdescribed'},
-    {'value': 'damaged_in_transit', 'label': 'Damaged in Transit'},
-    {'value': 'change_of_mind', 'label': 'Change of Mind (Sealed)'},
-    {'value': 'missing_item', 'label': 'Missing Item from Box'},
+    {'value': 'materially_defective', 'label': 'Defective / Not Functioning'},
+    {'value': 'wrong_item', 'label': 'Wrong Item Delivered'},
+    {'value': 'different_from_advertised', 'label': 'Different from Advertised / Counterfeit'},
+    {'value': 'damaged_item', 'label': 'Damaged in Transit / Broken'},
+    {'value': 'missing_component', 'label': 'Missing Component or Accessory'},
   ];
 
   @override
