@@ -61,4 +61,16 @@ class ApiEndpoints {
   static const String productReviews = '/api/v1/products/'; // + {id}/reviews
   static const String submitReview = '/api/v1/customer/reviews';
   static const String myReviews = '/api/v1/customer/reviews/my-reviews';
+
+  // Multi-Channel Notifications & FCM Push Gateway
+  static const String deviceToken = '/api/v1/notifications/device-token';
+  static const String registerDeviceToken = '/api/v1/notifications/device-token';
+  static const String revokeDeviceToken = '/api/v1/notifications/device-token';
+  static const String inAppNotifications = '/api/v1/notifications/in-app';
+  static const String markNotificationRead = '/api/v1/notifications/mark-read/'; // + {id?}
+
+  // Bank-Grade Legal & Governance Policies
+  static const String legalDocuments = '/api/v1/legal';
+  static const String legalDocumentSlug = '/api/v1/legal/'; // + {slug}
 }
+

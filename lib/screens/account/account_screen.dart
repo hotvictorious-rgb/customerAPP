@@ -9,6 +9,8 @@ import '../../providers/cashback_provider.dart';
 import '../../widgets/brand_app_bar.dart';
 import '../address/address_list_screen.dart';
 import '../auth/login_screen.dart';
+import '../legal/legal_document_screen.dart';
+import '../notifications/notifications_screen.dart';
 import '../orders/orders_list_screen.dart';
 import '../reservations/pickup_reservation_pass_screen.dart';
 import '../returns/returns_screen.dart';
@@ -310,6 +312,15 @@ class AccountScreen extends StatelessWidget {
                   ),
                   const Divider(height: 1, indent: 56),
                   _buildMenuItem(
+                    icon: Icons.notifications_active_outlined,
+                    title: 'Notification Center',
+                    subtitle: 'Dispatch alerts, courier updates & system notices',
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
+                    },
+                  ),
+                  const Divider(height: 1, indent: 56),
+                  _buildMenuItem(
                     icon: Icons.account_balance_wallet,
                     title: 'Sovereign Cashback Wallet',
                     subtitle: 'View available balance & 90/5/5 ledger',
@@ -364,6 +375,124 @@ class AccountScreen extends StatelessWidget {
                     title: 'API Server Endpoint',
                     subtitle: 'Configure backend host URL',
                     onTap: () => _showApiSettingsDialog(context),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Bank-Grade Legal & Governance Charter
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'LEGAL & REGULATORY POLICIES',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.0,
+                    color: AppColors.textSecondary.withOpacity(0.8),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.border),
+                boxShadow: AppColors.cardShadow,
+              ),
+              child: Column(
+                children: [
+                  _buildMenuItem(
+                    icon: Icons.gavel_outlined,
+                    title: 'Terms of Service',
+                    subtitle: 'Marketplace buyer & merchant operating rules',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const LegalDocumentScreen(
+                            slug: 'terms-of-service',
+                            initialTitle: 'Terms of Service',
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const Divider(height: 1, indent: 56),
+                  _buildMenuItem(
+                    icon: Icons.privacy_tip_outlined,
+                    title: 'Privacy & Data Protection',
+                    subtitle: 'Zero-knowledge credentials & data encryption',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const LegalDocumentScreen(
+                            slug: 'privacy-policy',
+                            initialTitle: 'Privacy Policy',
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const Divider(height: 1, indent: 56),
+                  _buildMenuItem(
+                    icon: Icons.shield_outlined,
+                    title: '24-Hour Return & Escrow Policy',
+                    subtitle: 'Physical inspection & automated 100% refund rules',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const LegalDocumentScreen(
+                            slug: 'return-policy',
+                            initialTitle: '24-Hour Return Policy',
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const Divider(height: 1, indent: 56),
+                  _buildMenuItem(
+                    icon: Icons.verified_user_outlined,
+                    title: 'Buyer Protection Charter',
+                    subtitle: 'Akwa Ibom sovereign consumer guarantee',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const LegalDocumentScreen(
+                            slug: 'buyer-protection',
+                            initialTitle: 'Buyer Protection Charter',
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const Divider(height: 1, indent: 56),
+                  _buildMenuItem(
+                    icon: Icons.info_outline,
+                    title: 'About Victorious MARKET',
+                    subtitle: 'Our vision for Nigeria\'s trusted digital commerce',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const LegalDocumentScreen(
+                            slug: 'about-us',
+                            initialTitle: 'About Victorious MARKET',
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),

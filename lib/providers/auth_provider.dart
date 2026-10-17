@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../core/constants/api_endpoints.dart';
 import '../core/network/api_client.dart';
 import '../core/network/api_exceptions.dart';
+import '../core/services/firebase_notification_service.dart';
 import '../core/services/storage_service.dart';
 import '../models/user_model.dart';
 
@@ -26,6 +27,12 @@ class AuthProvider extends ChangeNotifier {
     if (token != null && cachedUser != null) {
       _user = cachedUser;
       notifyListeners();
+
+      // Register device token with backend
+      FirebaseNotificationService.instance.registerWithBackend(
+        apiClient: apiClient,
+        storage: storageService,
+      );
 
       // Refresh from server
       try {
@@ -68,6 +75,13 @@ class AuthProvider extends ChangeNotifier {
         await storageService.saveToken(token);
         await storageService.saveUser(userData);
         _user = userData;
+
+        // Register hardware device token with backend notification matrix
+        FirebaseNotificationService.instance.registerWithBackend(
+          apiClient: apiClient,
+          storage: storageService,
+        );
+
         _isLoading = false;
         notifyListeners();
         return true;
@@ -114,6 +128,13 @@ class AuthProvider extends ChangeNotifier {
         await storageService.saveToken(token);
         await storageService.saveUser(userData);
         _user = userData;
+
+        // Register hardware device token with backend notification matrix
+        FirebaseNotificationService.instance.registerWithBackend(
+          apiClient: apiClient,
+          storage: storageService,
+        );
+
         _isLoading = false;
         notifyListeners();
         return true;
@@ -132,6 +153,10 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> logout() async {
+    await FirebaseNotificationService.instance.unregisterWithBackend(
+      apiClient: apiClient,
+      storage: storageService,
+    );
     await storageService.clearAll();
     _user = null;
     notifyListeners();

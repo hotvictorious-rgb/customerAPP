@@ -21,4 +21,5 @@ class AppConstants {
   static const String userKey = 'vm_customer_user_data';
   static const String cartKey = 'vm_customer_cart_items';
   static const String baseUrlKey = 'vm_customer_base_url';
+  static const String deviceTokenKey = 'vm_customer_device_token';
 }

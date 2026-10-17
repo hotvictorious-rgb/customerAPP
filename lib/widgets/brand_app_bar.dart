@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
 import '../core/constants/app_constants.dart';
 import '../providers/cart_provider.dart';
+import '../providers/notification_provider.dart';
 import '../screens/cart/cart_screen.dart';
+import '../screens/notifications/notifications_screen.dart';
 
 /// Reusable Sovereign Brand Title for Victorious MARKET
 class BrandTitle extends StatelessWidget {
@@ -67,6 +69,7 @@ class BrandAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? titleWidget;
   final bool showCart;
   final bool showBack;
+  final bool showNotification;
   final List<Widget>? actions;
 
   const BrandAppBar({
@@ -75,6 +78,7 @@ class BrandAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.titleWidget,
     this.showCart = true,
     this.showBack = true,
+    this.showNotification = true,
     this.actions,
   });
 
@@ -128,6 +132,45 @@ class BrandAppBar extends StatelessWidget implements PreferredSizeWidget {
                         : const BrandTitle()),
               ),
               if (actions != null) ...actions!,
+              if (showNotification)
+                Consumer<NotificationProvider>(
+                  builder: (context, notifProv, _) => Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.notifications_none, color: Colors.white, size: 26),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                          );
+                        },
+                      ),
+                      if (notifProv.unreadCount > 0)
+                        Positioned(
+                          right: 6,
+                          top: 8,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: AppColors.danger,
+                              shape: BoxShape.circle,
+                            ),
+                            constraints: const BoxConstraints(minWidth: 17, minHeight: 17),
+                            child: Text(
+                              notifProv.unreadCount > 99 ? '99+' : '${notifProv.unreadCount}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w900,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               if (showCart)
                 Consumer<CartProvider>(
                   builder: (context, cart, _) => Stack(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_colors.dart';
+import '../../models/customer_address_model.dart';
 import '../../providers/address_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/cashback_provider.dart';
@@ -42,6 +44,256 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
+  void _showAddressSelectionModal(BuildContext context) {
+    final addressProv = context.read<AddressProvider>();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Select Delivery Destination',
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                ),
+                TextButton.icon(
+                  icon: const Icon(Icons.add, size: 16, color: AppColors.primaryPurple),
+                  label: const Text('New Address', style: TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.bold)),
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const AddAddressScreen()),
+                    ).then((_) => _runFulfillmentCheck());
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Flexible(
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: addressProv.addresses.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (context, i) {
+                  final addr = addressProv.addresses[i];
+                  final isSelected = addressProv.selectedAddress?.id == addr.id;
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(
+                      isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                      color: isSelected ? AppColors.primaryPurple : AppColors.textMuted,
+                    ),
+                    title: Text(
+                      '${addr.contactName} (${addr.lgaName ?? "LGA"})',
+                      style: TextStyle(
+                        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                        fontSize: 13,
+                        color: isSelected ? AppColors.primaryPurple : AppColors.textPrimary,
+                      ),
+                    ),
+                    subtitle: Text(
+                      addr.fullAddressText,
+                      style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    onTap: () {
+                      addressProv.selectAddress(addr);
+                      Navigator.pop(ctx);
+                      _runFulfillmentCheck();
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _finalizeOrderSuccess({required String orderNumber}) async {
+    final cart = context.read<CartProvider>();
+    cart.clearCart();
+
+    final orderProv = context.read<OrderProvider>();
+    await orderProv.fetchOrders();
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Payment verified! Order $orderNumber is placed and being prepared.'),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => OrderTrackingScreen(orderNumber: orderNumber),
+        ),
+      );
+    }
+  }
+
+  void _showPaymentVerificationSheet({
+    required String orderNumber,
+    required String reference,
+    required String authUrl,
+  }) {
+    bool isVerifying = false;
+    String? verifyError;
+
+    showModalBottomSheet(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setSheetState) => Container(
+          padding: const EdgeInsets.all(24),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryPurple.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.payment, color: AppColors.primaryPurple, size: 32),
+              ),
+              const SizedBox(height: 14),
+              const Text(
+                'Complete Payment via Paystack',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Order #$orderNumber • Ref: ${reference.length > 12 ? reference.substring(0, 12) + "..." : reference}',
+                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontFamily: 'monospace'),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceMuted,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.info_outline, color: AppColors.primaryPurple, size: 20),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'The secure Paystack payment window has opened in your browser. Complete your transfer or card payment, then tap "Verify Payment".',
+                        style: TextStyle(fontSize: 12, color: AppColors.textPrimary, height: 1.35),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (verifyError != null) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.dangerLight,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.danger.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline, color: AppColors.danger, size: 16),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          verifyError!,
+                          style: const TextStyle(color: AppColors.danger, fontSize: 11.5, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: 20),
+              CustomButton(
+                text: 'I Have Paid • Verify Payment',
+                icon: Icons.verified_user,
+                isLoading: isVerifying,
+                backgroundColor: AppColors.success,
+                onPressed: () async {
+                  setSheetState(() {
+                    isVerifying = true;
+                    verifyError = null;
+                  });
+
+                  final checkout = context.read<CheckoutProvider>();
+                  final ok = await checkout.verifyOrderPayment(
+                    orderNumber: orderNumber,
+                    reference: reference,
+                  );
+
+                  if (ok) {
+                    Navigator.pop(ctx);
+                    await _finalizeOrderSuccess(orderNumber: orderNumber);
+                  } else {
+                    setSheetState(() {
+                      isVerifying = false;
+                      verifyError = checkout.errorMessage ?? 'Payment could not be verified yet. If you were just debited, please wait 5 seconds and tap again.';
+                    });
+                  }
+                },
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.open_in_new, size: 16, color: AppColors.primaryPurple),
+                label: const Text('Re-open Paystack Gateway', style: TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.bold)),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.primaryPurple),
+                  minimumSize: const Size.fromHeight(44),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: () async {
+                  final uri = Uri.parse(authUrl);
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _processCheckout() async {
     final cart = context.read<CartProvider>();
     final address = context.read<AddressProvider>();
@@ -65,7 +317,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
 
     if (intent != null && mounted) {
-      // Step 2: Show Settlement Simulation / Paystack confirmation dialog
+      // Step 2: Show Settlement / Paystack confirmation dialog
       _showPaystackDialog(intent.fingerprint, intent.totalPayable);
     } else if (mounted && checkout.errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -144,26 +396,32 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               );
 
               final orderNum = orderData != null ? orderData['order_number'] as String? : null;
+              final paystack = orderData != null ? orderData['paystack'] as Map<String, dynamic>? : null;
 
-              cart.clearCart();
-
-              // Fetch latest orders & open tracking screen
-              final orderProv = context.read<OrderProvider>();
-              await orderProv.fetchOrders();
-
-              if (mounted) {
+              if (orderData != null && orderNum != null) {
+                if (paystack != null && paystack['authorization_url'] != null) {
+                  final authUrl = paystack['authorization_url'] as String;
+                  final reference = (paystack['reference'] ?? '') as String;
+                  final uri = Uri.parse(authUrl);
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  }
+                  if (mounted) {
+                    _showPaymentVerificationSheet(
+                      orderNumber: orderNum,
+                      reference: reference,
+                      authUrl: authUrl,
+                    );
+                  }
+                } else {
+                  _finalizeOrderSuccess(orderNumber: orderNum);
+                }
+              } else if (mounted && checkout.errorMessage != null) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Payment verified! Your order is placed and being prepared.'),
-                    backgroundColor: AppColors.success,
-                  ),
-                );
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => OrderTrackingScreen(
-                      orderNumber: orderNum ?? (orderProv.orders.isNotEmpty ? orderProv.orders.first.orderNumber : 'VM-ORD-9081'),
-                    ),
+                  SnackBar(
+                    content: Text(checkout.errorMessage!),
+                    backgroundColor: AppColors.danger,
+                    behavior: SnackBarBehavior.floating,
                   ),
                 );
               }
@@ -332,38 +590,60 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                 )
               else
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.primaryPurple, width: 1.5),
-                    boxShadow: AppColors.cardShadow,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.location_on, color: AppColors.primaryPurple, size: 20),
-                          const SizedBox(width: 8),
-                          Text(
-                            address.selectedAddress?.contactName ?? 'Recipient',
-                            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
-                          ),
-                          const Spacer(),
-                          Text(
-                            address.selectedAddress?.phone ?? '',
-                            style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        address.selectedAddress?.fullAddressText ?? '',
-                        style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.3),
-                      ),
-                    ],
+                InkWell(
+                  onTap: () => _showAddressSelectionModal(context),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.primaryPurple, width: 1.5),
+                      boxShadow: AppColors.cardShadow,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.location_on, color: AppColors.primaryPurple, size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              address.selectedAddress?.contactName ?? 'Recipient',
+                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                            ),
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryPurple.withOpacity(0.08),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Change',
+                                    style: TextStyle(
+                                      color: AppColors.primaryPurple,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(width: 2),
+                                  Icon(Icons.keyboard_arrow_down, size: 14, color: AppColors.primaryPurple),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          address.selectedAddress?.fullAddressText ?? '',
+                          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.3),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
 

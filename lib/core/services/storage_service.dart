@@ -54,6 +54,19 @@ class StorageService {
     return _prefs.getString(AppConstants.baseUrlKey) ?? ApiEndpoints.defaultBaseUrl;
   }
 
+  // Device Token (Hardware / FCM Push Gateway)
+  Future<void> saveDeviceToken(String token) async {
+    await _prefs.setString(AppConstants.deviceTokenKey, token);
+  }
+
+  String? getDeviceToken() {
+    return _prefs.getString(AppConstants.deviceTokenKey);
+  }
+
+  Future<void> clearDeviceToken() async {
+    await _prefs.remove(AppConstants.deviceTokenKey);
+  }
+
   // Clear all session data
   Future<void> clearAll() async {
     await clearToken();

@@ -103,4 +103,34 @@ class ApiClient {
       throw ApiException(message: e.message ?? 'Unknown request error');
     }
   }
+
+  // PUT
+  Future<Response> put(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) async {
+    try {
+      return await dio.put(path, data: data, queryParameters: queryParameters, options: options);
+    } on DioException catch (e) {
+      if (e.error is ApiException) throw e.error as ApiException;
+      throw ApiException(message: e.message ?? 'Unknown request error');
+    }
+  }
+
+  // DELETE
+  Future<Response> delete(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) async {
+    try {
+      return await dio.delete(path, data: data, queryParameters: queryParameters, options: options);
+    } on DioException catch (e) {
+      if (e.error is ApiException) throw e.error as ApiException;
+      throw ApiException(message: e.message ?? 'Unknown request error');
+    }
+  }
 }

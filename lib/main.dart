@@ -13,6 +13,7 @@ import 'providers/cashback_provider.dart';
 import 'providers/checkout_provider.dart';
 import 'providers/catalog_provider.dart';
 import 'providers/order_provider.dart';
+import 'providers/notification_provider.dart';
 import 'providers/returns_provider.dart';
 import 'providers/review_provider.dart';
 import 'screens/splash/splash_screen.dart';
@@ -76,6 +77,9 @@ class VictoriousMarketApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => CashbackProvider(apiClient: apiClient),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => NotificationProvider(apiClient: apiClient)..fetchNotifications(),
         ),
         ChangeNotifierProvider(
           create: (_) => ReturnsProvider(apiClient: apiClient),

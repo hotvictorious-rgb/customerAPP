@@ -59,6 +59,7 @@ class ReviewProvider extends ChangeNotifier {
   /// Submit a verified review for a delivered purchase
   Future<bool> submitReview({
     required int orderId,
+    String? orderNumber,
     required int productId,
     required int rating,
     String? headline,
@@ -73,6 +74,7 @@ class ReviewProvider extends ChangeNotifier {
         ApiEndpoints.submitReview,
         data: {
           'order_id': orderId,
+          if (orderNumber != null && orderNumber.isNotEmpty) 'order_number': orderNumber,
           'product_id': productId,
           'rating': rating,
           'headline': headline,

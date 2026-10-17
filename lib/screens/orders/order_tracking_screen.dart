@@ -337,6 +337,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
       SubmitReviewDialog.show(
         context,
         orderId: order.id,
+        orderNumber: order.orderNumber,
         productId: item.productId,
         productName: item.productName,
       );
@@ -405,6 +406,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                           SubmitReviewDialog.show(
                             context,
                             orderId: order.id,
+                            orderNumber: order.orderNumber,
                             productId: item.productId,
                             productName: item.productName,
                           );
@@ -542,6 +544,17 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
             isLoading: _isSubmittingOtp,
             backgroundColor: AppColors.success,
             onPressed: () => _confirmDeliveryOtp(order),
+          ),
+          const SizedBox(height: 12),
+          Center(
+            child: TextButton.icon(
+              icon: const Icon(Icons.cancel_outlined, size: 16, color: AppColors.secondaryGold),
+              label: const Text(
+                'Wrong Item or Damaged? Reject Delivery',
+                style: TextStyle(color: AppColors.secondaryGold, fontSize: 12.5, fontWeight: FontWeight.bold),
+              ),
+              onPressed: () => _showRejectionGuideDialog(order),
+            ),
           ),
         ],
       ),

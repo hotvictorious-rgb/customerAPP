@@ -24,6 +24,11 @@ class CatalogProvider extends ChangeNotifier {
   String _coverageStatusBadge = '⚡ In-Shop Pickup & Same-Day Active';
   String _searchQuery = '';
 
+  // Multi-Facet Filters
+  String? _selectedCondition; // 'brand_new', 'uk_used'
+  bool _flagshipOnly = false;
+  String? _selectedPackageTier; // 'bike', 'keke'
+
   List<CategoryModel> get categories => _categories;
   List<ProductModel> get products => _products;
   List<ProductModel> get flagshipProducts => _flagshipProducts;
@@ -36,6 +41,11 @@ class CatalogProvider extends ChangeNotifier {
   String get selectedCity => _selectedCity;
   String get selectedState => _selectedState;
   String get coverageStatusBadge => _coverageStatusBadge;
+  String get searchQuery => _searchQuery;
+
+  String? get selectedCondition => _selectedCondition;
+  bool get flagshipOnly => _flagshipOnly;
+  String? get selectedPackageTier => _selectedPackageTier;
 
   CatalogProvider({required this.apiClient});
 
@@ -54,6 +64,9 @@ class CatalogProvider extends ChangeNotifier {
     int? categoryId,
     int? lgaId,
     String? search,
+    String? condition,
+    bool? flagshipOnly,
+    String? packageTier,
     bool refresh = false,
   }) async {
     _isLoading = true;
@@ -62,9 +75,23 @@ class CatalogProvider extends ChangeNotifier {
 
     try {
       final Map<String, dynamic> params = {};
-      if (categoryId != null) params['category_id'] = categoryId;
-      if (lgaId != null) params['lga_id'] = lgaId;
-      if (search != null && search.isNotEmpty) params['search'] = search;
+      final catId = categoryId ?? _selectedCategory?.id;
+      if (catId != null) params['category_id'] = catId;
+
+      final locLga = lgaId ?? _selectedLgaId;
+      if (locLga != null) params['lga_id'] = locLga;
+
+      final s = search ?? _searchQuery;
+      if (s.isNotEmpty) params['search'] = s;
+
+      final cond = condition ?? _selectedCondition;
+      if (cond != null && cond.isNotEmpty) params['condition'] = cond;
+
+      final flag = flagshipOnly ?? _flagshipOnly;
+      if (flag) params['flagship_only'] = 1;
+
+      final tier = packageTier ?? _selectedPackageTier;
+      if (tier != null && tier.isNotEmpty) params['package_tier'] = tier;
 
       final res = await apiClient.get(ApiEndpoints.products, queryParameters: params);
       if (res.data['status'] == true && res.data['data'] != null) {
@@ -122,20 +149,44 @@ class CatalogProvider extends ChangeNotifier {
 
   void selectCategory(CategoryModel? category) {
     _selectedCategory = category;
-    fetchProducts(
-      categoryId: category?.id,
-      lgaId: _selectedLgaId,
-      search: _searchQuery,
-    );
+    fetchProducts();
+  }
+
+  void setCondition(String? condition) {
+    if (_selectedCondition == condition) {
+      _selectedCondition = null; // Toggle off
+    } else {
+      _selectedCondition = condition;
+    }
+    fetchProducts();
+  }
+
+  void toggleFlagship() {
+    _flagshipOnly = !_flagshipOnly;
+    fetchProducts();
+  }
+
+  void setPackageTier(String? tier) {
+    if (_selectedPackageTier == tier) {
+      _selectedPackageTier = null; // Toggle off
+    } else {
+      _selectedPackageTier = tier;
+    }
+    fetchProducts();
+  }
+
+  void resetAllFilters() {
+    _selectedCategory = null;
+    _selectedCondition = null;
+    _flagshipOnly = false;
+    _selectedPackageTier = null;
+    _searchQuery = '';
+    fetchProducts();
   }
 
   void selectLga(int? lgaId) {
     _selectedLgaId = lgaId;
-    fetchProducts(
-      categoryId: _selectedCategory?.id,
-      lgaId: lgaId,
-      search: _searchQuery,
-    );
+    fetchProducts();
   }
 
   Future<void> fetchShops({int? lgaId}) async {
@@ -162,20 +213,12 @@ class CatalogProvider extends ChangeNotifier {
     _selectedLgaId = lgaId;
     if (badge != null) _coverageStatusBadge = badge;
     fetchShops(lgaId: lgaId);
-    fetchProducts(
-      categoryId: _selectedCategory?.id,
-      lgaId: lgaId,
-      search: _searchQuery,
-    );
+    fetchProducts();
     notifyListeners();
   }
 
   void search(String query) {
     _searchQuery = query;
-    fetchProducts(
-      categoryId: _selectedCategory?.id,
-      lgaId: _selectedLgaId,
-      search: query,
-    );
+    fetchProducts();
   }
 }

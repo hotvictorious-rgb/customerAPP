@@ -214,6 +214,11 @@ class CheckoutProvider extends ChangeNotifier {
       }
     } catch (_) {}
 
+    _isLoading = false;
+    notifyListeners();
+    return null;
+  }
+
   Future<bool> verifyOrderPayment({
     required String orderNumber,
     required String reference,

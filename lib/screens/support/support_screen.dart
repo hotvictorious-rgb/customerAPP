@@ -4,6 +4,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../widgets/brand_app_bar.dart';
 import '../../widgets/custom_button.dart';
+import '../legal/legal_document_screen.dart';
 
 class SupportScreen extends StatelessWidget {
   const SupportScreen({super.key});
@@ -118,6 +119,80 @@ class SupportScreen extends StatelessWidget {
             _buildFaqTile(
               'How are delivery fees calculated?',
               'Delivery fees are determined strictly by the backend directional lane engine based on the merchant shop\'s LGA and your destination LGA (e.g. Uyo -> Eket). Neither the app nor couriers can alter these authoritative rates.',
+            ),
+
+            const SizedBox(height: 24),
+
+            const Text(
+              'Platform Governance & Policies',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+            ),
+            const SizedBox(height: 12),
+
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.border),
+                boxShadow: AppColors.cardShadow,
+              ),
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.shield_outlined, color: AppColors.primaryPurple),
+                    title: const Text('24-Hour Return & Refund Charter', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    subtitle: const Text('Step-by-step physical inspection and refund rights', style: TextStyle(fontSize: 11)),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const LegalDocumentScreen(
+                            slug: 'return-policy',
+                            initialTitle: '24-Hour Return Policy',
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.verified_user_outlined, color: AppColors.primaryPurple),
+                    title: const Text('Buyer Protection Guarantee', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    subtitle: const Text('Escrow security and doorstep rejection safety', style: TextStyle(fontSize: 11)),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const LegalDocumentScreen(
+                            slug: 'buyer-protection',
+                            initialTitle: 'Buyer Protection Charter',
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.gavel_outlined, color: AppColors.primaryPurple),
+                    title: const Text('Terms of Service', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    subtitle: const Text('Official platform agreements and dispute resolution', style: TextStyle(fontSize: 11)),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const LegalDocumentScreen(
+                            slug: 'terms-of-service',
+                            initialTitle: 'Terms of Service',
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
 
             const SizedBox(height: 40),

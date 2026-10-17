@@ -34,7 +34,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
         children: [
           // Search & Filter Header
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
             color: Colors.white,
             child: Column(
               children: [
@@ -55,14 +55,14 @@ class _CatalogScreenState extends State<CatalogScreen> {
                         : null,
                     filled: true,
                     fillColor: AppColors.surfaceMuted,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(30),
                       borderSide: BorderSide.none,
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 // Horizontal category chip selector
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -102,6 +102,53 @@ class _CatalogScreenState extends State<CatalogScreen> {
                     ],
                   ),
                 ),
+                const SizedBox(height: 8),
+                // Multi-Facet Attribute Chips (Condition, Flagship, Vehicle Tier)
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildFacetChip(
+                        label: '✨ Brand New',
+                        isSelected: catalog.selectedCondition == 'brand_new',
+                        onTap: () => catalog.setCondition('brand_new'),
+                      ),
+                      const SizedBox(width: 8),
+                      _buildFacetChip(
+                        label: '🔄 UK Used',
+                        isSelected: catalog.selectedCondition == 'uk_used',
+                        onTap: () => catalog.setCondition('uk_used'),
+                      ),
+                      const SizedBox(width: 8),
+                      _buildFacetChip(
+                        label: '⭐ Flagship Verified',
+                        isSelected: catalog.flagshipOnly,
+                        onTap: () => catalog.toggleFlagship(),
+                      ),
+                      const SizedBox(width: 8),
+                      _buildFacetChip(
+                        label: '🏍️ Bike Tier',
+                        isSelected: catalog.selectedPackageTier == 'bike',
+                        onTap: () => catalog.setPackageTier('bike'),
+                      ),
+                      const SizedBox(width: 8),
+                      _buildFacetChip(
+                        label: '🛺 Keke Tier',
+                        isSelected: catalog.selectedPackageTier == 'keke',
+                        onTap: () => catalog.setPackageTier('keke'),
+                      ),
+                      if (catalog.selectedCondition != null || catalog.flagshipOnly || catalog.selectedPackageTier != null) ...[
+                        const SizedBox(width: 8),
+                        ActionChip(
+                          avatar: const Icon(Icons.close, size: 14, color: AppColors.danger),
+                          label: const Text('Clear Filters', style: TextStyle(color: AppColors.danger, fontSize: 11, fontWeight: FontWeight.bold)),
+                          backgroundColor: AppColors.dangerLight,
+                          onPressed: () => catalog.resetAllFilters(),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -132,8 +179,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                             ElevatedButton(
                               onPressed: () {
                                 _searchController.clear();
-                                catalog.selectCategory(null);
-                                catalog.selectLga(null);
+                                catalog.resetAllFilters();
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primaryPurple,
@@ -145,11 +191,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                         ),
                       )
                     : RefreshIndicator(
-                        onRefresh: () => catalog.fetchProducts(
-                          categoryId: catalog.selectedCategory?.id,
-                          lgaId: catalog.selectedLgaId,
-                          search: _searchController.text,
-                        ),
+                        onRefresh: () => catalog.fetchProducts(refresh: true),
                         child: GridView.builder(
                           padding: const EdgeInsets.all(16),
                           itemCount: catalog.products.length,
@@ -166,6 +208,36 @@ class _CatalogScreenState extends State<CatalogScreen> {
                       ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFacetChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.secondaryGold : AppColors.surfaceMuted,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? AppColors.secondaryGoldDark : AppColors.border,
+            width: isSelected ? 1.5 : 1.0,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 11.5,
+            fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+            color: isSelected ? AppColors.primaryDarkPurple : AppColors.textPrimary,
+          ),
+        ),
       ),
     );
   }

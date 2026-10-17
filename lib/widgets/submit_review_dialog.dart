@@ -6,12 +6,14 @@ import 'custom_button.dart';
 
 class SubmitReviewDialog extends StatefulWidget {
   final int orderId;
+  final String? orderNumber;
   final int productId;
   final String productName;
 
   const SubmitReviewDialog({
     super.key,
     required this.orderId,
+    this.orderNumber,
     required this.productId,
     required this.productName,
   });
@@ -19,6 +21,7 @@ class SubmitReviewDialog extends StatefulWidget {
   static Future<bool?> show(
     BuildContext context, {
     required int orderId,
+    String? orderNumber,
     required int productId,
     required String productName,
   }) {
@@ -28,6 +31,7 @@ class SubmitReviewDialog extends StatefulWidget {
       backgroundColor: Colors.transparent,
       builder: (ctx) => SubmitReviewDialog(
         orderId: orderId,
+        orderNumber: orderNumber,
         productId: productId,
         productName: productName,
       ),
@@ -227,6 +231,7 @@ class _SubmitReviewDialogState extends State<SubmitReviewDialog> {
 
                   final success = await reviewProvider.submitReview(
                     orderId: widget.orderId,
+                    orderNumber: widget.orderNumber,
                     productId: widget.productId,
                     rating: _selectedRating,
                     headline: _headlineController.text.trim().isEmpty ? null : _headlineController.text.trim(),

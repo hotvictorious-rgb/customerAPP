@@ -3,6 +3,7 @@ import '../core/constants/api_endpoints.dart';
 import '../core/network/api_client.dart';
 import '../models/app_config_model.dart';
 import '../models/geography_models.dart';
+import '../models/legal_document_model.dart';
 
 class AppConfigProvider extends ChangeNotifier {
   final ApiClient apiClient;
@@ -10,10 +11,12 @@ class AppConfigProvider extends ChangeNotifier {
   AppConfigModel? _config;
   bool _isLoading = false;
   String? _errorMessage;
+  final Map<String, LegalDocumentModel> _cachedLegalDocs = {};
 
   AppConfigModel? get config => _config;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  Map<String, LegalDocumentModel> get cachedLegalDocs => _cachedLegalDocs;
 
   // Safe Dynamic Getters (With production-grade offline fallbacks)
   String get appName => _config?.appName ?? 'Victorious MARKET';
@@ -55,5 +58,19 @@ class AppConfigProvider extends ChangeNotifier {
 
     _isLoading = false;
     notifyListeners();
+  }
+
+  /// Fetch legal & compliance policy by slug
+  Future<LegalDocumentModel?> fetchLegalDocument(String slug) async {
+    try {
+      final res = await apiClient.get('${ApiEndpoints.legalDocumentSlug}$slug');
+      if (res.data['success'] == true && res.data['data'] != null) {
+        final doc = LegalDocumentModel.fromJson(res.data['data'] as Map<String, dynamic>);
+        _cachedLegalDocs[slug] = doc;
+        notifyListeners();
+        return doc;
+      }
+    } catch (_) {}
+    return null;
   }
 }
