@@ -8,6 +8,10 @@ import '../../widgets/brand_app_bar.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/delivery_stepper.dart';
 import '../../widgets/otp_security_card.dart';
+import '../../widgets/photo_preview_dialog.dart';
+import '../../widgets/reorder_quote_bottom_sheet.dart';
+import '../../providers/returns_provider.dart';
+import '../../models/return_case_model.dart';
 import '../returns/returns_screen.dart';
 import '../wallet/wallet_cashback_screen.dart';
 import '../../widgets/submit_review_dialog.dart';
@@ -712,6 +716,200 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     );
   }
 
+  Future<void> _handle1ClickDoorstepReorder(OrderModel order) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(
+        child: CircularProgressIndicator(color: AppColors.primaryPurple),
+      ),
+    );
+
+    final returnsProv = context.read<ReturnsProvider>();
+    await returnsProv.fetchReturnCases();
+
+    ReturnCaseModel? matchingCase;
+    try {
+      matchingCase = returnsProv.cases.firstWhere(
+        (c) => c.orderId == order.id || c.orderNumber == order.orderNumber,
+      );
+    } catch (_) {
+      try {
+        matchingCase = returnsProv.cases.firstWhere((c) => c.isDoorstepRejection);
+      } catch (_) {
+        matchingCase = returnsProv.cases.isNotEmpty ? returnsProv.cases.first : null;
+      }
+    }
+
+    if (!mounted) return;
+
+    if (matchingCase != null) {
+      final quote = await returnsProv.fetchReorderQuote(matchingCase.caseNumber);
+      if (mounted) {
+        Navigator.of(context).pop(); // Dismiss spinner
+        if (quote != null) {
+          ReorderQuoteBottomSheet.show(context, quote: quote);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(returnsProv.errorMessage ?? 'Unable to prepare re-order quotation.'),
+              backgroundColor: AppColors.danger,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } else {
+      if (mounted) {
+        Navigator.of(context).pop(); // Dismiss spinner
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Opening Return Center for this order...'),
+            backgroundColor: AppColors.primaryPurple,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ReturnsScreen(
+              initialOrderNumber: order.orderNumber,
+              initialOrderId: order.id,
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildDoorstepPartialReorderBanner(OrderModel order) {
+    final rejectedItems = order.items.where((i) => i.hasRejection).toList();
+    final rejectedCount = rejectedItems.fold<int>(0, (sum, i) => sum + (i.rejectedQuantity ?? 1));
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF0F172A), Color(0xFF1E1B4B)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.secondaryGold, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryPurple.withOpacity(0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.secondaryGold.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.secondaryGold),
+                ),
+                child: const Icon(Icons.flash_on, color: AppColors.secondaryGold, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Text(
+                          'DOORSTEP REFUSAL DETECTED',
+                          style: TextStyle(
+                            color: AppColors.secondaryGold,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.0,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEF4444).withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: const Color(0xFFEF4444)),
+                          ),
+                          child: Text(
+                            '$rejectedCount ${rejectedCount == 1 ? "Item" : "Items"} Rejected',
+                            style: const TextStyle(
+                              color: Color(0xFFFCA5A5),
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      '100% Wallet Refund Available',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            rejectedItems.isNotEmpty
+                ? 'You rejected "${rejectedItems.first.productName}"${rejectedItems.length > 1 ? " and ${rejectedItems.length - 1} other item(s)" : ""} during doorstep inspection. The refund credit has been credited to your platform wallet escrow.'
+                : 'Package items were rejected during doorstep handover. The full refund is available in your platform wallet escrow.',
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 12,
+              height: 1.35,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.secondaryGold,
+              foregroundColor: AppColors.primaryDarkPurple,
+              elevation: 3,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            onPressed: () => _handle1ClickDoorstepReorder(order),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.bolt, size: 18, color: AppColors.primaryDarkPurple),
+                SizedBox(width: 6),
+                Text(
+                  '⚡ 1-Click Replacement Re-Order (₦0.00)',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildDeliveryAttemptCard(OrderModel order) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -764,19 +962,41 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
             ),
             child: Row(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    order.deliveryAttemptPhoto!,
-                    width: 70,
-                    height: 70,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      width: 70,
-                      height: 70,
-                      color: const Color(0xFFFEF3C7),
-                      child: const Icon(Icons.camera_alt, color: Color(0xFFB45309)),
-                    ),
+                InkWell(
+                  onTap: () => PhotoPreviewDialog.show(
+                    context,
+                    imageUrl: order.deliveryAttemptPhoto!,
+                    title: '⚠️ Courier Delivery Attempt Proof',
+                    subtitle: 'Doorstep photo captured when handover could not be completed (${order.deliveryFailureReason?.replaceAll("_", " ") ?? "Gate Locked / Customer Unreachable"})',
+                  ),
+                  child: Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          order.deliveryAttemptPhoto!,
+                          width: 70,
+                          height: 70,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            width: 70,
+                            height: 70,
+                            color: const Color(0xFFFEF3C7),
+                            child: const Icon(Icons.camera_alt, color: Color(0xFFB45309)),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(3),
+                        margin: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.6),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.zoom_in, color: Colors.white, size: 12),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -786,7 +1006,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                     children: [
                       const Text('📸 Doorstep / Gate Proof Photo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF92400E))),
                       const SizedBox(height: 2),
-                      const Text('Live photo captured on courier device at arrival.', style: TextStyle(fontSize: 10.5, color: Color(0xFF78350F))),
+                      const Text('Live photo captured on courier device at arrival (tap to enlarge).', style: TextStyle(fontSize: 10.5, color: Color(0xFF78350F))),
                       if (order.riderPhone != null) ...[
                         const SizedBox(height: 6),
                         InkWell(
@@ -829,72 +1049,180 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
           if (order.pickupCounterPhoto != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+              child: InkWell(
+                onTap: () => PhotoPreviewDialog.show(
+                  context,
+                  imageUrl: order.pickupCounterPhoto!,
+                  title: '🏬 Merchant Counter Pickup Handshake',
+                  subtitle: 'Live photo verified at branch counter before courier departure',
                 ),
-                child: Row(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
-                      child: Image.network(
-                        order.pickupCounterPhoto!,
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(width: 50, height: 50, color: Colors.grey[200]),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Row(
+                    children: [
+                      Stack(
+                        alignment: Alignment.bottomRight,
                         children: [
-                          Text('🏬 Merchant Counter Pickup', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                          Text('Live photo verified at branch counter', style: TextStyle(fontSize: 10.5, color: AppColors.textSecondary)),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: Image.network(
+                              order.pickupCounterPhoto!,
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(width: 50, height: 50, color: Colors.grey[200]),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(2),
+                            margin: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.6),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.zoom_in, color: Colors.white, size: 10),
+                          ),
                         ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('🏬 Merchant Counter Pickup', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                            Text('Live photo verified at branch counter • Tap to view', style: TextStyle(fontSize: 10.5, color: AppColors.textSecondary)),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.arrow_forward_ios, size: 12, color: AppColors.textMuted),
+                    ],
+                  ),
                 ),
               ),
             ),
           if (order.doorstepDeliveryPhoto != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF0FDF4),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFBBF7D0)),
+              child: InkWell(
+                onTap: () => PhotoPreviewDialog.show(
+                  context,
+                  imageUrl: order.doorstepDeliveryPhoto!,
+                  title: '🏠 Doorstep Delivery Handover',
+                  subtitle: 'Live photo snapped upon package handover at customer doorstep',
                 ),
-                child: Row(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
-                      child: Image.network(
-                        order.doorstepDeliveryPhoto!,
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(width: 50, height: 50, color: Colors.grey[200]),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0FDF4),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFBBF7D0)),
+                  ),
+                  child: Row(
+                    children: [
+                      Stack(
+                        alignment: Alignment.bottomRight,
                         children: [
-                          Text('🏠 Doorstep Delivery Handover', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF166534))),
-                          Text('Live photo snapped upon package handover', style: TextStyle(fontSize: 10.5, color: Color(0xFF15803D))),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: Image.network(
+                              order.doorstepDeliveryPhoto!,
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(width: 50, height: 50, color: Colors.grey[200]),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(2),
+                            margin: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.6),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.zoom_in, color: Colors.white, size: 10),
+                          ),
                         ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('🏠 Doorstep Delivery Handover', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF166534))),
+                            Text('Live photo snapped upon package handover • Tap to view', style: TextStyle(fontSize: 10.5, color: Color(0xFF15803D))),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.arrow_forward_ios, size: 12, color: Color(0xFF15803D)),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          if (order.deliveryAttemptPhoto != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: InkWell(
+                onTap: () => PhotoPreviewDialog.show(
+                  context,
+                  imageUrl: order.deliveryAttemptPhoto!,
+                  title: '⚠️ Courier Delivery Attempt Proof',
+                  subtitle: 'Doorstep photo snapped when handover could not be completed',
+                ),
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFFBEB),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFFDE68A)),
+                  ),
+                  child: Row(
+                    children: [
+                      Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: Image.network(
+                              order.deliveryAttemptPhoto!,
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(width: 50, height: 50, color: Colors.grey[200]),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(2),
+                            margin: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.6),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.zoom_in, color: Colors.white, size: 10),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('⚠️ Locked Gate / Attempt Proof', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF92400E))),
+                            Text(order.deliveryFailureReason?.replaceAll("_", " ") ?? 'Customer unavailable • Tap to view', style: const TextStyle(fontSize: 10.5, color: Color(0xFF78350F))),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.arrow_forward_ios, size: 12, color: Color(0xFFB45309)),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -910,20 +1238,43 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '❌ Doorstep Rejection Proofs (${order.itemRejectionPhotos.length})',
+                    '❌ Doorstep Rejection Proofs (${order.itemRejectionPhotos.length}) • Tap to zoom',
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF991B1B)),
                   ),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
-                    children: order.itemRejectionPhotos.map((p) => ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
-                      child: Image.network(
-                        p,
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(width: 50, height: 50, color: Colors.grey[300]),
+                    runSpacing: 8,
+                    children: order.itemRejectionPhotos.map((p) => InkWell(
+                      onTap: () => PhotoPreviewDialog.show(
+                        context,
+                        imageUrl: p,
+                        title: '❌ Doorstep Item Rejection Proof',
+                        subtitle: 'Photographic evidence captured during doorstep handover inspection',
+                      ),
+                      child: Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: Image.network(
+                              p,
+                              width: 54,
+                              height: 54,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(width: 54, height: 54, color: Colors.grey[300]),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(2),
+                            margin: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.6),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.zoom_in, color: Colors.white, size: 10),
+                          ),
+                        ],
                       ),
                     )).toList(),
                   ),
@@ -979,6 +1330,10 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         // State 0: Courier Attempt Failure Warning (e.g. Locked gate / Unreachable)
                         if (order.deliveryAttemptPhoto != null)
                           _buildDeliveryAttemptCard(order),
+
+                        // State 0b: Doorstep Partial Rejection Detected -> 1-Click Instant Wallet Reorder Banner
+                        if (order.orderStatus == 'partially_delivered' || order.items.any((i) => i.hasRejection))
+                          _buildDoorstepPartialReorderBanner(order),
 
                         // State 1: Courier arrived at Doorstep -> Prompt Entry Card
                         if (order.riderArrived && !order.isDelivered)
@@ -1160,7 +1515,32 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                               ),
                                               if (item.defectPhoto != null) ...[
                                                 const SizedBox(width: 6),
-                                                const Text('📸 Defect Snapped', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFDC2626))),
+                                                InkWell(
+                                                  onTap: () => PhotoPreviewDialog.show(
+                                                    context,
+                                                    imageUrl: item.defectPhoto!,
+                                                    title: '📸 Defect Proof: ${item.productName}',
+                                                    subtitle: item.rejectionCategory?.replaceAll("_", " ") ?? 'Item defect snapped during doorstep inspection',
+                                                  ),
+                                                  child: Container(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                    decoration: BoxDecoration(
+                                                      color: const Color(0xFFDC2626),
+                                                      borderRadius: BorderRadius.circular(4),
+                                                    ),
+                                                    child: const Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        Icon(Icons.zoom_in, color: Colors.white, size: 10),
+                                                        SizedBox(width: 3),
+                                                        Text(
+                                                          'Defect Photo',
+                                                          style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: Colors.white),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
                                               ],
                                             ],
                                           ),

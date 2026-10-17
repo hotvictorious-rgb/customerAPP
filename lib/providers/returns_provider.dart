@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../core/constants/api_endpoints.dart';
 import '../core/network/api_client.dart';
 import '../core/network/api_exceptions.dart';
+import '../models/reorder_quote_model.dart';
 import '../models/return_case_model.dart';
 
 class ReturnsProvider extends ChangeNotifier {
@@ -9,11 +10,13 @@ class ReturnsProvider extends ChangeNotifier {
 
   List<ReturnCaseModel> _cases = [];
   ReturnCaseModel? _activeCase;
+  ReorderQuoteModel? _activeReorderQuote;
   bool _isLoading = false;
   String? _errorMessage;
 
   List<ReturnCaseModel> get cases => _cases;
   ReturnCaseModel? get activeCase => _activeCase;
+  ReorderQuoteModel? get activeReorderQuote => _activeReorderQuote;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
@@ -129,28 +132,90 @@ class ReturnsProvider extends ChangeNotifier {
     return false;
   }
 
-  Future<String?> reorderRejectedItems(int orderId) async {
+  void clearReorderQuote() {
+    _activeReorderQuote = null;
+    notifyListeners();
+  }
+
+  /// 1. Fetch Re-Order Quotation Manifest for Rejected Doorstep Items
+  /// Queries backend /api/v1/customer/orders/reorder-rejected-items
+  Future<ReorderQuoteModel?> fetchReorderQuote(String caseNumber) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
       final res = await apiClient.post(ApiEndpoints.reorderRejectedItems, data: {
-        'order_id': orderId,
+        'case_number': caseNumber.trim(),
       });
 
       if (res.data['status'] == true && res.data['data'] != null) {
-        final newOrderNumber = res.data['data']['order_number'] as String?;
+        _activeReorderQuote = ReorderQuoteModel.fromJson(
+          res.data['data'] as Map<String, dynamic>,
+          caseNumber: caseNumber.trim(),
+        );
         _isLoading = false;
         notifyListeners();
-        return newOrderNumber;
+        return _activeReorderQuote;
       } else {
-        _errorMessage = res.data['message'] ?? 'Failed to reorder replacement items.';
+        _errorMessage = res.data['message']?.toString() ?? 'Failed to prepare re-order quotation.';
       }
     } on ApiException catch (e) {
       _errorMessage = e.message;
     } catch (_) {
-      _errorMessage = 'Network error while reordering replacement items.';
+      _errorMessage = 'Network error while preparing re-order quotation.';
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return null;
+  }
+
+  /// 2. Authoritative 1-Click Execution with 100% Instant Wallet Credit Applied
+  Future<Map<String, dynamic>?> executeReorderWithWallet({
+    required ReorderQuoteModel quote,
+    required int addressId,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      if (quote.items.isEmpty) {
+        _errorMessage = 'No valid items found in quotation manifest.';
+        _isLoading = false;
+        notifyListeners();
+        return null;
+      }
+
+      final firstShopId = quote.items.first.shopId;
+      final itemsPayload = quote.items.map((i) => {
+        'product_id': i.productId,
+        'quantity': i.quantity,
+      }).toList();
+
+      final res = await apiClient.post(ApiEndpoints.checkoutIntent, data: {
+        'shop_id': firstShopId,
+        'customer_address_id': addressId,
+        'fulfillment_type': 'doorstep_delivery',
+        'items': itemsPayload,
+        'redeem_cashback': false,
+        'redeem_wallet_credit': true,
+        'payment_method': 'paystack',
+      });
+
+      if (res.data['status'] == true && res.data['data'] != null) {
+        _activeReorderQuote = null;
+        _isLoading = false;
+        notifyListeners();
+        return res.data['data'] as Map<String, dynamic>;
+      } else {
+        _errorMessage = res.data['message']?.toString() ?? 'Failed to execute 1-click replacement order.';
+      }
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+    } catch (_) {
+      _errorMessage = 'Network error while placing 1-click replacement order.';
     }
 
     _isLoading = false;

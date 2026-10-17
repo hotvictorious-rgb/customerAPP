@@ -6,6 +6,7 @@ import '../../providers/order_provider.dart';
 import '../../providers/returns_provider.dart';
 import '../../widgets/brand_app_bar.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/reorder_quote_bottom_sheet.dart';
 import '../orders/order_tracking_screen.dart';
 
 class ReturnsScreen extends StatefulWidget {
@@ -388,28 +389,48 @@ class _ReturnsScreenState extends State<ReturnsScreen> with SingleTickerProvider
               ),
             ),
           ],
-          if (c.status.contains('refunded') || c.status == 'approved') ...[
+          if (c.canReorderWithWalletCredit) ...[
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.primaryPurple,
-                  side: const BorderSide(color: AppColors.primaryPurple, width: 1.5),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  padding: const EdgeInsets.symmetric(vertical: 10),
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryPurple,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
-                icon: const Icon(Icons.replay, size: 16),
-                label: const Text('1-Click Reorder Replacement', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                icon: const Icon(Icons.flash_on, size: 16, color: AppColors.goldAccent),
+                label: const Text(
+                  '⚡ 1-Click Re-Order (Instant Wallet Credit)',
+                  style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800),
+                ),
                 onPressed: () async {
-                  final newOrd = await context.read<ReturnsProvider>().reorderRejectedItems(c.orderId);
-                  if (newOrd != null && mounted) {
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (ctx) => const Center(
+                      child: CircularProgressIndicator(color: AppColors.primaryPurple),
+                    ),
+                  );
+
+                  final returnsProvider = context.read<ReturnsProvider>();
+                  final quote = await returnsProvider.fetchReorderQuote(c.caseNumber);
+
+                  if (mounted) {
+                    Navigator.of(context).pop(); // Dismiss loading spinner
+                  }
+
+                  if (quote != null && mounted) {
+                    ReorderQuoteBottomSheet.show(context, quote: quote);
+                  } else if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Replacement order $newOrd created successfully!'), backgroundColor: AppColors.success),
-                    );
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => OrderTrackingScreen(orderNumber: newOrd)),
+                      SnackBar(
+                        content: Text(returnsProvider.errorMessage ?? 'Unable to prepare re-order quotation.'),
+                        backgroundColor: AppColors.danger,
+                        behavior: SnackBarBehavior.floating,
+                      ),
                     );
                   }
                 },

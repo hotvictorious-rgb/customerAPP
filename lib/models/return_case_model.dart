@@ -15,6 +15,7 @@ class ReturnCaseModel {
   final String? vendorReturnOtp;
   final bool vendorDisputed;
   final String? vendorDisputeReason;
+  final String source;
   final String? createdAt;
   final List<ReturnItemModel> items;
 
@@ -33,6 +34,7 @@ class ReturnCaseModel {
     this.vendorReturnOtp,
     this.vendorDisputed = false,
     this.vendorDisputeReason,
+    this.source = 'customer_return',
     this.createdAt,
     this.items = const [],
   });
@@ -70,6 +72,7 @@ class ReturnCaseModel {
       vendorReturnOtp: json['vendor_return_otp'] as String?,
       vendorDisputed: json['vendor_disputed'] == true || json['vendor_disputed'] == 1,
       vendorDisputeReason: json['vendor_dispute_reason'] as String?,
+      source: json['source'] as String? ?? 'customer_return',
       createdAt: json['created_at'] as String?,
       items: parsedItems,
     );
@@ -77,6 +80,17 @@ class ReturnCaseModel {
 
   String get formattedRefundable => CurrencyFormatter.format(totalRefundableAmount);
   String get formattedRefunded => CurrencyFormatter.format(refundedAmount);
+
+  bool get isDoorstepRejection =>
+      source == 'doorstep_refusal' ||
+      status == 'in_transit_back_to_vendor' ||
+      returnReason == 'doorstep_rejection';
+
+  bool get canReorderWithWalletCredit =>
+      isDoorstepRejection ||
+      status == 'in_transit_back_to_vendor' ||
+      status == 'refunded' ||
+      status == 'received_at_hub';
 
   String get readableStatus {
     switch (status) {
